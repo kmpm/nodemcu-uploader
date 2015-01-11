@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# Copyright (C) 2015 Peter Magnusson
+
 # For NodeMcu version 0.9.4 build 2014-12-30 and newer.
 
 import os
@@ -5,13 +8,12 @@ import serial
 import sys
 import argparse
 import time
+import logging
+
+log = logging.getLogger(__name__)
 
 def minify(script):
     return ' '.join([line.strip() for line in script.split('\n')])
-
-def log(msg):
-    sys.stdout.write(msg)
-    sys.stdout.flush()
 
 save_lua = \
 r"""
@@ -58,20 +60,19 @@ class Uploader:
     TIMEOUT = 1
 
     def __init__(self, port = 0, baud = BAUD):
-        self._port = serial.Serial(port, baud, timeout=Uploader.TIMEOUT)
+        self._port = serial.Serial(port, Uploader.BAUD, timeout=Uploader.TIMEOUT)
+        if baud != Uploader.BAUD:
+            log.info('Changing communication to %s baud', baud)
+            self._port.write('uart.setup(0,%s,8,0,1,1)\r\n' % baud)
+            log.info(self.dump())
+            self._port.close()
+            self._port = serial.Serial(port, baud, timeout=Uploader.TIMEOUT)
+
         self.line_number = 0
-        self.verbose = False
-        self.debug = False
 
-
-    def set_verbose(self):
-        self.verbose = True
-
-
-    def set_debug(self):
-        self.verbose = True
-        self.debug = True
-
+    def close(self):
+        self._port.write('uart.setup(0,%s,8,0,1,1)\r\n' % Uploader.BAUD)
+        self._port.close()
 
     def dump(self, timeout=TIMEOUT):
         t = self._port.timeout
@@ -88,20 +89,19 @@ class Uploader:
 
 
     def prepare(self):
-        if self.verbose: log('Preparing esp for transfer.')
+        log.info('Preparing esp for transfer.')
         self.write_lines(save_lua.replace('9600', '%d' % self._port.baudrate))
         self._port.write('\r\n')
-        if self.verbose: log('.')
+        
         d = self.dump(0.1)
         if 'unexpected' in d or len(d) > len(save_lua)+10:
-            print 'error in save_lua', d
+            log.error('error in save_lua "%s"' % d)
             return
-        if self.verbose: print('.done')
 
 
     def write(self, path):
         filename = os.path.basename(path)
-        if self.verbose: log('Transfering %s' % filename)
+        log.info('Transfering %s' % filename)
         self.dump()
         self._port.write(r"recv()" + '\n')
 
@@ -110,19 +110,18 @@ class Uploader:
             time.sleep(1)
             count += 1
             if count > 5:
-                print 'Error waiting for esp', self.dump()
+                log.error('Error waiting for esp "%s"' % self.dump())
                 return
         self.dump(0.5)
-        if self.verbose: log('.')
-        if self.debug: print 'sending filename', filename
+        log.debug('sending filename "%s"', filename)
         self._port.write(filename + '\x00')
 
         if not self.got_ack():
-            print 'did not ack filename', self.dump()
+            log.error('did not ack filename: "%s"' % self.dump())
             return
-        if self.verbose: log('.')
+
         f = open( path, 'rt' ); content = f.read(); f.close()
-        if self.debug: print 'sending %d bytes in %s' % (len(content), filename)
+        log.debug('sending %d bytes in %s' % (len(content), filename))
         pos = 0
         chunk_size = 128
         error = False
@@ -130,26 +129,22 @@ class Uploader:
             data = content[pos: pos+chunk_size]
             if not self.write_chunk(data):
                 error = True
-                print 'Bad send'
                 d = self.dump()
-                print d
-                print ':'.join(x.encode('hex') for x in d)
+                log.error('Bad chunk response "%s" %s' % (d, ':'.join(x.encode('hex') for x in d)))
                 break
 
             pos += chunk_size
             if pos + chunk_size > len(content):
                 chunk_size = len(content) - pos
             
-        if self.verbose: log('.')
-        if self.debug: print 'sending zero block'
+        log.debug('sending zero block')
         if not error:
             #zero size block
             self.write_chunk('')
-        if self.verbose: print 'done'
 
-    
+
     def got_ack(self):
-        if self.debug: print 'waiting for ack'
+        log.debug('waiting for ack')
         r = self._port.read(1)
         return r == '\x06' #ACK
 
@@ -160,24 +155,44 @@ class Uploader:
         for line in lines:
             self._port.write(line + '\r\n')
             d = self.dump(0.1)
-            if self.debug: log(d)
+            log.debug(d)
         return
 
 
     def write_chunk(self, chunk):
-        if self.debug: print 'writing %d bytes chunk' % len(chunk)
+        log.debug('writing %d bytes chunk' % len(chunk))
         data = '\x01' + chr(len(chunk)) + chunk
         if len(chunk) < 128:
             padding = 128 - len(chunk)
-            if self.debug: print 'pad with %d characters' % padding
+            log.debug('pad with %d characters' % padding)
             data = data + (' ' * padding)
-        if self.debug: print "packet size %d" % len(data)
+        log.debug("packet size %d" % len(data))
         self._port.write(data)
 
         return self.got_ack()
         
 
-   
+    def file_list(self):
+        log.info('Listing files')
+        self._port.write('for key,value in pairs(file.list()) do print(key,value) end' + '\r\n')
+        r = self.dump()
+        log.info(r)
+        return r
+
+    def file_format(self):
+        log.info('Format')
+        self._port.write('file.format()' + '\r\n')
+        r = self.dump()
+        log.info(r)
+        return r
+
+    def node_heap(self):
+        log.info('Heap')
+        self._port.write('print(node.heap())\r\n')
+        r = self.dump()
+        log.info(r)
+        return r
+
 
 def arg_auto_int(x):
     return int(x, 0)
@@ -192,7 +207,7 @@ if __name__ == '__main__':
 
     parser.add_argument(
             '--baud', '-b',
-            help = 'Serial port baud rate',
+            help = 'Serial port baudrate',
             type = arg_auto_int,
             default = Uploader.BAUD)
 
@@ -202,25 +217,41 @@ if __name__ == '__main__':
             action = 'store_true',
             default = False)
 
-    parser.add_argument(
-            '--debug', '-d',
-            help = 'debug output',
-            action = 'store_true',
-            default = False)
+    subparsers = parser.add_subparsers(
+        dest='operation',
+        help = 'Run nodemcu-uploader {command} -h for additional help')
 
-    parser.add_argument('filename',  nargs='+', help = 'Lua file to upload')
+    upload_parser = subparsers.add_parser(
+            'upload',
+            help = 'Upload file(s)')
 
+    upload_parser.add_argument('filename',  nargs='+', help = 'Lua file to upload')
+
+    file_parser = subparsers.add_parser(
+        'file', 
+        help = 'File functions')
+
+    file_parser.add_argument('cmd', choices=('list', 'format'))
 
     args = parser.parse_args()
     
+    formatter = logging.Formatter('%(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+    
     uploader = Uploader(args.port, args.baud)
     if args.verbose:
-        uploader.set_verbose()
-    if args.debug:
-        uploader.set_debug()
-    
-    uploader.prepare()    
-    for f in args.filename:
-        uploader.write(f)
-    if args.verbose: 
-        print 'All done!' 
+        logger.setLevel(logging.DEBUG)
+
+    if args.operation == 'upload':
+        uploader.prepare()    
+        for f in args.filename:
+            uploader.write(f) 
+        print 'All done!'
+
+    elif args.operation == 'file':
+        if args.cmd == 'list': 
+            uploader.file_list()
+        elif args.cmd == 'format': 
+            uploader.file_format()
+
+    uploader.close()
