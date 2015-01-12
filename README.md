@@ -28,11 +28,15 @@ Uploading a number of files
 ```
 ./nodemcu-uploader.py file format
 ```
+
+Todo
+----
+* Speed up the initial step of uploading the script to NodeMCU
+* Implement a change of baudrate for the actual transfer and go back when done
  
 Details
 -------
-
-This is *almost* an implementation of xmodem protocol.
+This is *almost* an implementation of xmodem protocol for the upload part.
 
 1. Client calls the function recv()
 2. NodeMCU disables echo and send a 'C' to tell that it's ready to receive data
@@ -42,6 +46,8 @@ This is *almost* an implementation of xmodem protocol.
 6. Client sends ACK
 7. Step 5 and 6 are repeated until NodeMCU receives a block with 0 as size.
 8. NodeMCU enables normal terminal again with echo
+ 
+
 
 ### Data Block Definition
 __SOH__, __size__, __data[128]__
@@ -49,3 +55,13 @@ __SOH__, __size__, __data[128]__
 * SOH = 0x01
 * Single byte telling how much of the 128 bytes data that are actually used.
 * Data padded with random bytes to fill out the 128 bytes frame.
+
+This gives a total 130 bytes per block.
+
+The block size was decided for...
+
+1. Being close to xmodem from where the inspiration came
+2. A fixed size allow the use of the uart.on('data') event very easy.
+3. 130 bytes would fit in the receive buffer buffer.
+4. It would not waste that much traffic if the total size uploaded was not a multiple of the allowed datasize.
+a fixed
