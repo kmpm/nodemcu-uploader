@@ -29,3 +29,23 @@ Uploading a number of files
 ./nodemcu-uploader.py file format
 ```
  
+Details
+-------
+
+This is *almost* an implementation of xmodem protocol.
+
+1. Client calls the function recv()
+2. NodeMCU disables echo and send a 'C' to tell that it's ready to receive data
+3. Client sends a filename terminated with 0x00
+4. NodeMCU sends ACK
+5. Client send block of data according to the definition.
+6. Client sends ACK
+7. Step 5 and 6 are repeated until NodeMCU receives a block with 0 as size.
+8. NodeMCU enables normal terminal again with echo
+
+### Data Block Definition
+__SOH__, __size__, __data[128]__
+
+* SOH = 0x01
+* Single byte telling how much of the 128 bytes data that are actually used.
+* Data padded with random bytes to fill out the 128 bytes frame.
