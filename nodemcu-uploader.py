@@ -210,6 +210,12 @@ def arg_auto_int(x):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'nodeMCU Lua uploader', prog = 'uploader')
     parser.add_argument(
+            '--verbose', '-v',
+            help = 'verbouse output',
+            action = 'store_true',
+            default = False)
+
+    parser.add_argument(
             '--port', '-p',
             help = 'Serial port device',
             default = Uploader.PORT)
@@ -219,12 +225,6 @@ if __name__ == '__main__':
             help = 'Serial port baudrate',
             type = arg_auto_int,
             default = Uploader.BAUD)
-
-    parser.add_argument(
-            '--verbose', '-v',
-            help = 'verbouse output',
-            action = 'store_true',
-            default = False)
 
     subparsers = parser.add_subparsers(
         dest='operation',
@@ -249,7 +249,7 @@ if __name__ == '__main__':
     
     uploader = Uploader(args.port, args.baud)
     if args.verbose:
-        logger.setLevel(logging.DEBUG)
+        log.setLevel(logging.DEBUG)
 
     if args.operation == 'upload':
         uploader.prepare()    
