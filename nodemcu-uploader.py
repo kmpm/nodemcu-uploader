@@ -61,6 +61,15 @@ class Uploader:
 
     def __init__(self, port = 0, baud = BAUD):
         self._port = serial.Serial(port, Uploader.BAUD, timeout=Uploader.TIMEOUT)
+
+        # Keeps things working, if following conections are made:
+        ## RTS = CH_PD (i.e reset)
+        ## DTR = GPIO0
+        self._port.setRTS(False)
+        self._port.setDTR(False)
+        time.sleep(0.5)
+        self.dump()
+
         if baud != Uploader.BAUD:
             log.info('Changing communication to %s baud', baud)
             self._port.write('uart.setup(0,%s,8,0,1,1)\r\n' % baud)
