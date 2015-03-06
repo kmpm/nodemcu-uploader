@@ -264,15 +264,13 @@ if __name__ == '__main__':
         if not args.destination:
             uploader.prepare()
             for f in args.filename:
-                uploader.write_file(f, f)
+                uploader.write_file(f)
         elif len(args.destination) == len(args.filename):
             uploader.prepare()
             for f, d in zip(args.filename, args.destination):
                 uploader.write_file(f, d)
         else:
             raise Exception('You must specify a destination filename for each file you want to upload.')
-        for f in args.filename:
-            uploader.write_file(f)
         print 'All done!'
 
     elif args.operation == 'file':
