@@ -3,9 +3,9 @@ nodemcu-uploader.py
 
 
 A simple tool for uploading files to the filesystem of an
-ESP8266 running nodeMcu as well as some other usefull commands.
+ESP8266 running NodeMCU as well as some other usefull commands.
 
-It should work on linux and windows and with any type of file 
+It should work on Linux, Windows, and OS X; and with any type of file
 that fits the filesystem, binary or text.
 
 
@@ -14,9 +14,16 @@ Usage
 --port and --baud are set to default /dev/ttyUSB0 and 9600 respectively.
 
 ###Upload
-Uploading a number of files
+Uploading a number of files.
+
 ```
-./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py
+./nodemcu-uploader.py upload -f init.lua -f README.md -f nodemcu-uploader.py
+```
+
+Uploading a number of files, but saving with a different file name.
+
+```
+./nodemcu-uploader.py upload -f init.lua -d new_init.lua -f README.md -d new_README.md
 ```
 
 ###List files
@@ -33,7 +40,7 @@ Todo
 ----
 * Speed up the initial step of uploading the script to NodeMCU
 * Implement a change of baudrate for the actual transfer and go back when done
- 
+
 Details
 -------
 This is *almost* an implementation of xmodem protocol for the upload part.
@@ -46,7 +53,7 @@ This is *almost* an implementation of xmodem protocol for the upload part.
 6. Client sends ACK
 7. Step 5 and 6 are repeated until NodeMCU receives a block with 0 as size.
 8. NodeMCU enables normal terminal again with echo
- 
+
 
 
 ### Data Block Definition
