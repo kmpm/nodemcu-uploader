@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Copyright (C) 2015 Peter Magnusson
 
-# For NodeMcu version 0.9.4 build 2014-12-30 and newer.
+# For NodeMCU version 0.9.4 build 2014-12-30 and newer.
 
 import os
 import serial
@@ -92,7 +92,7 @@ class Uploader:
         while n != '':
             data += n
             n = self._port.read()
-    
+
         self._port.timeout = t
         return data
 
@@ -101,16 +101,18 @@ class Uploader:
         log.info('Preparing esp for transfer.')
         self.write_lines(save_lua.replace('9600', '%d' % self._port.baudrate))
         self._port.write('\r\n')
-        
+
         d = self.dump(0.1)
         if 'unexpected' in d or len(d) > len(save_lua)+10:
             log.error('error in save_lua "%s"' % d)
             return
 
 
-    def write(self, path):
+    def write_file(self, path, destination = ''):
         filename = os.path.basename(path)
-        log.info('Transfering %s' % filename)
+        if not destination:
+            destination = filename
+        log.info('Transfering %s as %s' %(filename, destination))
         self.dump()
         self._port.write(r"recv()" + '\n')
 
@@ -122,11 +124,10 @@ class Uploader:
                 log.error('Error waiting for esp "%s"' % self.dump())
                 return
         self.dump(0.5)
-        log.debug('sending filename "%s"', filename)
-        self._port.write(filename + '\x00')
-
+        log.debug('sending destination filename "%s"', destination)
+        self._port.write(destination + '\x00')
         if not self.got_ack():
-            log.error('did not ack filename: "%s"' % self.dump())
+            log.error('did not ack destination filename: "%s"' % self.dump())
             return
 
         f = open( path, 'rt' ); content = f.read(); f.close()
@@ -145,7 +146,7 @@ class Uploader:
             pos += chunk_size
             if pos + chunk_size > len(content):
                 chunk_size = len(content) - pos
-            
+
         log.debug('sending zero block')
         if not error:
             #zero size block
@@ -179,7 +180,7 @@ class Uploader:
         self._port.write(data)
 
         return self.got_ack()
-        
+
 
     def file_list(self):
         log.info('Listing files')
@@ -208,10 +209,10 @@ def arg_auto_int(x):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = 'nodeMCU Lua uploader', prog = 'uploader')
+    parser = argparse.ArgumentParser(description = 'NodeMCU Lua file uploader', prog = 'nodemcu-uploader')
     parser.add_argument(
             '--verbose', '-v',
-            help = 'verbouse output',
+            help = 'verbose output',
             action = 'store_true',
             default = False)
 
@@ -232,35 +233,52 @@ if __name__ == '__main__':
 
     upload_parser = subparsers.add_parser(
             'upload',
-            help = 'Upload file(s)')
+            help = 'Path to one or more files to be uploaded. Destination name will be the same as the file name.')
 
-    upload_parser.add_argument('filename',  nargs='+', help = 'Lua file to upload')
+    upload_parser.add_argument(
+            '--filename', '-f',
+            help = 'File to upload. You can specify this option multiple times.',
+            action='append')
+
+    upload_parser.add_argument(
+            '--destination', '-d',
+            help = 'Name to be used when saving in NodeMCU. You should specify one per file.',
+            action='append')
 
     file_parser = subparsers.add_parser(
-        'file', 
+        'file',
         help = 'File functions')
 
     file_parser.add_argument('cmd', choices=('list', 'format'))
 
     args = parser.parse_args()
-    
+
     formatter = logging.Formatter('%(message)s')
     logging.basicConfig(level=logging.INFO, format='%(message)s')
-    
+
     uploader = Uploader(args.port, args.baud)
     if args.verbose:
         log.setLevel(logging.DEBUG)
 
     if args.operation == 'upload':
-        uploader.prepare()    
+        if not args.destination:
+            uploader.prepare()
+            for f in args.filename:
+                uploader.write_file(f, f)
+        elif len(args.destination) == len(args.filename):
+            uploader.prepare()
+            for f, d in zip(args.filename, args.destination):
+                uploader.write_file(f, d)
+        else:
+            raise Exception('You must specify a destination filename for each file you want to upload.')
         for f in args.filename:
-            uploader.write(f) 
+            uploader.write_file(f)
         print 'All done!'
 
     elif args.operation == 'file':
-        if args.cmd == 'list': 
+        if args.cmd == 'list':
             uploader.file_list()
-        elif args.cmd == 'format': 
+        elif args.cmd == 'format':
             uploader.file_format()
 
     uploader.close()
