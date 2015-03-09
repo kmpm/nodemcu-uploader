@@ -203,6 +203,29 @@ class Uploader:
         log.info(r)
         return r
 
+    def node_restart(self):
+        log.info('Restart')
+        self._port.write('node.restart()' +'\r\n')
+        r = self.dump()
+        log.info(r)
+        return r
+    
+    def file_compile(self, path):
+        log.info('Compile '+path)
+        cmd = 'node.compile("%s")' % path
+        self._port.write(cmd + '\r\n')
+        r = self.dump()
+        log.info(r)
+        return r
+    
+    def file_remove(self, path):
+        log.info('Remove '+path)
+        cmd = 'file.remove("%s")' % path
+        self._port.write(cmd + '\r\n')
+        r = self.dump()
+        log.info(r)
+        return r
+
 
 def arg_auto_int(x):
     return int(x, 0)
@@ -244,6 +267,19 @@ if __name__ == '__main__':
             '--destination', '-d',
             help = 'Name to be used when saving in NodeMCU. You should specify one per file.',
             action='append')
+    upload_parser.add_argument(
+            '--compile', '-c',
+            help = 'If file should be uploaded as compiled',
+            action='store_true',
+            default=False
+            )
+    
+    upload_parser.add_argument(
+            '--restart', '-r',
+            help = 'If esp should be restarted',
+            action='store_true',
+            default=False
+    )
 
     file_parser = subparsers.add_parser(
         'file',
@@ -269,6 +305,11 @@ if __name__ == '__main__':
             uploader.prepare()
             for f, d in zip(args.filename, args.destination):
                 uploader.write_file(f, d)
+                if args.compile:
+                    uploader.file_compile(d)
+                    uploader.file_remove(d)
+            if args.restart:
+                uploader.node_restart()
         else:
             raise Exception('You must specify a destination filename for each file you want to upload.')
         print 'All done!'
