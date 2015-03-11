@@ -71,4 +71,3 @@ The block size was decided for...
 2. A fixed size allow the use of the uart.on('data') event very easy.
 3. 130 bytes would fit in the receive buffer buffer.
 4. It would not waste that much traffic if the total size uploaded was not a multiple of the allowed datasize.
-a fixed
