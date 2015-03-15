@@ -21,7 +21,7 @@ function recv_block(d)
   if string.byte(d, 1) == 1 then
     size = string.byte(d, 2)
     if size > 0 then
-      file.write(string.sub(d, 3, 3+size))
+      file.write(string.sub(d, 3, 3+size-1))
       uart.write(0,'\006')
     else
       uart.write(0,'\006')
