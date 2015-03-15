@@ -3,7 +3,7 @@ nodemcu-uploader.py
 
 
 A simple tool for uploading files to the filesystem of an
-ESP8266 running NodeMCU as well as some other usefull commands.
+ESP8266 running NodeMCU as well as some other useful commands.
 
 It should work on Linux, Windows, and OS X; and with any type of file
 that fits the filesystem, binary or text.
