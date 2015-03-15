@@ -136,7 +136,11 @@ class Uploader:
         chunk_size = 128
         error = False
         while pos < len(content):
-            data = content[pos: pos+chunk_size]
+            rest = len(content) - pos
+            if rest > chunk_size:
+                rest = chunk_size
+
+            data = content[pos:pos+rest]
             if not self.write_chunk(data):
                 error = True
                 d = self.dump()
@@ -144,8 +148,6 @@ class Uploader:
                 break
 
             pos += chunk_size
-            if pos + chunk_size > len(content):
-                chunk_size = len(content) - pos
 
         log.debug('sending zero block')
         if not error:
