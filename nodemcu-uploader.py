@@ -108,6 +108,16 @@ class Uploader:
             return
 
 
+    def read_file(self, filename, destination = ''):
+        if not destination:
+            destination = filename
+        self.dump()
+        self._port.write(r"file.open('" + filename + r"') print(file.seek('end', 0)) file.seek('set', 0) uart.write(0, file.read()) file.close()" + '\n')
+        cmd, size, data = self.dump().split('\n', 2)
+        data = data[0:int(size)]
+        with open(destination, 'w') as f:
+          f.write(data)
+
     def write_file(self, path, destination = ''):
         filename = os.path.basename(path)
         if not destination:
@@ -283,6 +293,20 @@ if __name__ == '__main__':
             default=False
     )
 
+    download_parser = subparsers.add_parser(
+            'download',
+            help = 'Path to one or more files to be downloaded. Destination name will be the same as the file name.')
+
+    download_parser.add_argument(
+            '--filename', '-f',
+            help = 'File to download. You can specify this option multiple times.',
+            action='append')
+
+    download_parser.add_argument(
+            '--destination', '-d',
+            help = 'Name to be used when saving in NodeMCU. You should specify one per file.',
+            action='append')
+
     file_parser = subparsers.add_parser(
         'file',
         help = 'File functions')
@@ -314,6 +338,17 @@ if __name__ == '__main__':
                 uploader.node_restart()
         else:
             raise Exception('You must specify a destination filename for each file you want to upload.')
+        print 'All done!'
+
+    if args.operation == 'download':
+        if not args.destination:
+            for f in args.filename:
+                uploader.read_file(f)
+        elif len(args.destination) == len(args.filename):
+            for f, d in zip(args.filename, args.destination):
+                uploader.read_file(f, d)
+        else:
+            raise Exception('You must specify a destination filename for each file you want to download.')
         print 'All done!'
 
     elif args.operation == 'file':
