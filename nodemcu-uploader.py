@@ -107,19 +107,22 @@ class Uploader:
             log.error('error in save_lua "%s"' % d)
             return
 
+    def download_file(self, filename):
+        self.dump()
+        self._port.write(r"file.open('" + filename + r"') print(file.seek('end', 0)) file.seek('set', 0) uart.write(0, file.read()) file.close()" + '\n')
+        cmd, size, data = self.dump().split('\n', 2)
+        data = data[0:int(size)]
+        return data
 
     def read_file(self, filename, destination = ''):
         if not destination:
             destination = filename
         log.info('Transfering %s to %s' %(filename, destination))
-        self.dump()
-        self._port.write(r"file.open('" + filename + r"') print(file.seek('end', 0)) file.seek('set', 0) uart.write(0, file.read()) file.close()" + '\n')
-        cmd, size, data = self.dump().split('\n', 2)
-        data = data[0:int(size)]
+        data = self.download_file(filename)
         with open(destination, 'w') as f:
           f.write(data)
 
-    def write_file(self, path, destination = ''):
+    def write_file(self, path, destination = '', verify = False):
         filename = os.path.basename(path)
         if not destination:
             destination = filename
@@ -165,6 +168,11 @@ class Uploader:
             #zero size block
             self.write_chunk('')
 
+        if verify:
+            log.info('Verifying...')
+            data = self.download_file(destination)
+            if content != data:
+                log.error('Verification failed.')
 
     def got_ack(self):
         log.debug('waiting for ack')
@@ -288,6 +296,13 @@ if __name__ == '__main__':
             )
     
     upload_parser.add_argument(
+            '--verify', '-v',
+            help = 'To verify the uploaded data.',
+            action='store_true',
+            default=False
+            )
+    
+    upload_parser.add_argument(
             '--restart', '-r',
             help = 'If esp should be restarted',
             action='store_true',
@@ -327,11 +342,11 @@ if __name__ == '__main__':
         if not args.destination:
             uploader.prepare()
             for f in args.filename:
-                uploader.write_file(f)
+                uploader.write_file(f, '', args.verify)
         elif len(args.destination) == len(args.filename):
             uploader.prepare()
             for f, d in zip(args.filename, args.destination):
-                uploader.write_file(f, d)
+                uploader.write_file(f, d, args.verify)
                 if args.compile:
                     uploader.file_compile(d)
                     uploader.file_remove(d)

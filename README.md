@@ -26,6 +26,12 @@ Uploading a number of files, but saving with a different file name.
 ./nodemcu-uploader.py upload -f init.lua -d new_init.lua -f README.md -d new_README.md
 ```
 
+Uploading a number of files and verify successful uploading.
+
+```
+./nodemcu-uploader.py upload -f init.lua -f README.md -f nodemcu-uploader.py -v
+```
+
 ###Download
 Downloading a number of files.
 
