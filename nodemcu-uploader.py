@@ -111,6 +111,7 @@ class Uploader:
     def read_file(self, filename, destination = ''):
         if not destination:
             destination = filename
+        log.info('Transfering %s to %s' %(filename, destination))
         self.dump()
         self._port.write(r"file.open('" + filename + r"') print(file.seek('end', 0)) file.seek('set', 0) uart.write(0, file.read()) file.close()" + '\n')
         cmd, size, data = self.dump().split('\n', 2)
