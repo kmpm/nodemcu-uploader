@@ -339,21 +339,24 @@ if __name__ == '__main__':
         log.setLevel(logging.DEBUG)
 
     if args.operation == 'upload':
+        sources = args.filename
+        destinations = args. destination or []
         if not args.destination:
+            for f in sources:
+                destinations.append(f)
+        if len(destinations) == len(sources):
             uploader.prepare()
-            for f in args.filename:
-                uploader.write_file(f, '', args.verify)
-        elif len(args.destination) == len(args.filename):
-            uploader.prepare()
-            for f, d in zip(args.filename, args.destination):
+            for f, d in zip(sources, destinations):
                 uploader.write_file(f, d, args.verify)
                 if args.compile:
                     uploader.file_compile(d)
                     uploader.file_remove(d)
-            if args.restart:
-                uploader.node_restart()
         else:
             raise Exception('You must specify a destination filename for each file you want to upload.')
+
+        if args.restart:
+            uploader.node_restart()
+
         print 'All done!'
 
     if args.operation == 'download':
