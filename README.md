@@ -3,7 +3,7 @@ nodemcu-uploader.py
 
 
 A simple tool for uploading files to the filesystem of an
-ESP8266 running NodeMCU as well as some other usefull commands.
+ESP8266 running NodeMCU as well as some other useful commands.
 
 It should work on Linux, Windows, and OS X; and with any type of file
 that fits the filesystem, binary or text.
@@ -24,6 +24,25 @@ Uploading a number of files, but saving with a different file name.
 
 ```
 ./nodemcu-uploader.py upload -f init.lua -d new_init.lua -f README.md -d new_README.md [--compile] [--restart]
+```
+
+Uploading a number of files and verify successful uploading.
+
+```
+./nodemcu-uploader.py upload -f init.lua -f README.md -f nodemcu-uploader.py -v
+```
+
+###Download
+Downloading a number of files.
+
+```
+./nodemcu-uploader.py download -f init.lua -f README.md -f nodemcu-uploader.py
+```
+
+Downloading a number of files, but saving with a different file name.
+
+```
+./nodemcu-uploader.py download -f init.lua -d new_init.lua -f README.md -d new_README.md
 ```
 
 ###List files

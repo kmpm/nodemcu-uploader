@@ -21,7 +21,7 @@ function recv_block(d)
   if string.byte(d, 1) == 1 then
     size = string.byte(d, 2)
     if size > 0 then
-      file.write(string.sub(d, 3, 3+size))
+      file.write(string.sub(d, 3, 3+size-1))
       uart.write(0,'\006')
     else
       uart.write(0,'\006')
@@ -107,8 +107,22 @@ class Uploader:
             log.error('error in save_lua "%s"' % d)
             return
 
+    def download_file(self, filename):
+        self.dump()
+        self._port.write(r"file.open('" + filename + r"') print(file.seek('end', 0)) file.seek('set', 0) uart.write(0, file.read()) file.close()" + '\n')
+        cmd, size, data = self.dump().split('\n', 2)
+        data = data[0:int(size)]
+        return data
 
-    def write_file(self, path, destination = ''):
+    def read_file(self, filename, destination = ''):
+        if not destination:
+            destination = filename
+        log.info('Transfering %s to %s' %(filename, destination))
+        data = self.download_file(filename)
+        with open(destination, 'w') as f:
+          f.write(data)
+
+    def write_file(self, path, destination = '', verify = False):
         filename = os.path.basename(path)
         if not destination:
             destination = filename
@@ -136,7 +150,11 @@ class Uploader:
         chunk_size = 128
         error = False
         while pos < len(content):
-            data = content[pos: pos+chunk_size]
+            rest = len(content) - pos
+            if rest > chunk_size:
+                rest = chunk_size
+
+            data = content[pos:pos+rest]
             if not self.write_chunk(data):
                 error = True
                 d = self.dump()
@@ -144,14 +162,17 @@ class Uploader:
                 break
 
             pos += chunk_size
-            if pos + chunk_size > len(content):
-                chunk_size = len(content) - pos
 
         log.debug('sending zero block')
         if not error:
             #zero size block
             self.write_chunk('')
 
+        if verify:
+            log.info('Verifying...')
+            data = self.download_file(destination)
+            if content != data:
+                log.error('Verification failed.')
 
     def got_ack(self):
         log.debug('waiting for ack')
@@ -275,11 +296,32 @@ if __name__ == '__main__':
             )
     
     upload_parser.add_argument(
+            '--verify', '-v',
+            help = 'To verify the uploaded data.',
+            action='store_true',
+            default=False
+            )
+    
+    upload_parser.add_argument(
             '--restart', '-r',
             help = 'If esp should be restarted',
             action='store_true',
             default=False
     )
+
+    download_parser = subparsers.add_parser(
+            'download',
+            help = 'Path to one or more files to be downloaded. Destination name will be the same as the file name.')
+
+    download_parser.add_argument(
+            '--filename', '-f',
+            help = 'File to download. You can specify this option multiple times.',
+            action='append')
+
+    download_parser.add_argument(
+            '--destination', '-d',
+            help = 'Name to be used when saving in NodeMCU. You should specify one per file.',
+            action='append')
 
     file_parser = subparsers.add_parser(
         'file',
@@ -300,11 +342,11 @@ if __name__ == '__main__':
         if not args.destination:
             uploader.prepare()
             for f in args.filename:
-                uploader.write_file(f)
+                uploader.write_file(f, '', args.verify)
         elif len(args.destination) == len(args.filename):
             uploader.prepare()
             for f, d in zip(args.filename, args.destination):
-                uploader.write_file(f, d)
+                uploader.write_file(f, d, args.verify)
                 if args.compile:
                     uploader.file_compile(d)
                     uploader.file_remove(d)
@@ -312,6 +354,17 @@ if __name__ == '__main__':
                 uploader.node_restart()
         else:
             raise Exception('You must specify a destination filename for each file you want to upload.')
+        print 'All done!'
+
+    if args.operation == 'download':
+        if not args.destination:
+            for f in args.filename:
+                uploader.read_file(f)
+        elif len(args.destination) == len(args.filename):
+            for f, d in zip(args.filename, args.destination):
+                uploader.read_file(f, d)
+        else:
+            raise Exception('You must specify a destination filename for each file you want to download.')
         print 'All done!'
 
     elif args.operation == 'file':
