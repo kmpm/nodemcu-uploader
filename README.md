@@ -15,34 +15,37 @@ Usage
 
 ###Upload
 Uploading a number of files.
+Supports multiple files. If you want an alternate destination name, just
+add a colon ":" and the new destination filename. 
 
 ```
-./nodemcu-uploader.py upload -f init.lua -f README.md -f nodemcu-uploader.py [--compile] [--restart]
+./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py [--compile] [--restart]
 ```
 
 Uploading a number of files, but saving with a different file name.
 
 ```
-./nodemcu-uploader.py upload -f init.lua -d new_init.lua -f README.md -d new_README.md [--compile] [--restart]
+./nodemcu-uploader.py upload init.lua:new_init.lua README.md:new_README.md [--compile] [--restart]
 ```
 
 Uploading a number of files and verify successful uploading.
 
 ```
-./nodemcu-uploader.py upload -f init.lua -f README.md -f nodemcu-uploader.py -v
+./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py -v
 ```
 
 ###Download
 Downloading a number of files.
-
+Supports multiple files. If you want an alternate destination name, just
+add a colon ":" and the new destination filename. 
 ```
-./nodemcu-uploader.py download -f init.lua -f README.md -f nodemcu-uploader.py
+./nodemcu-uploader.py download init.lua README.md nodemcu-uploader.py
 ```
 
 Downloading a number of files, but saving with a different file name.
 
 ```
-./nodemcu-uploader.py download -f init.lua -d new_init.lua -f README.md -d new_README.md
+./nodemcu-uploader.py download init.lua:new_init.lua README.md:new_README.md
 ```
 
 ###List files
