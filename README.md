@@ -17,13 +17,13 @@ Usage
 Uploading a number of files.
 
 ```
-./nodemcu-uploader.py upload -f init.lua -f README.md -f nodemcu-uploader.py
+./nodemcu-uploader.py upload -f init.lua -f README.md -f nodemcu-uploader.py [--compile] [--restart]
 ```
 
 Uploading a number of files, but saving with a different file name.
 
 ```
-./nodemcu-uploader.py upload -f init.lua -d new_init.lua -f README.md -d new_README.md
+./nodemcu-uploader.py upload -f init.lua -d new_init.lua -f README.md -d new_README.md [--compile] [--restart]
 ```
 
 ###List files
