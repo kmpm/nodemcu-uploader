@@ -211,10 +211,13 @@ class Uploader:
         return r
 
     def file_format(self):
-        log.info('Format')
+        log.info('Formating...')
         self._port.write('file.format()' + '\r\n')
         r = self.dump()
-        log.info(r)
+        while(r == '') or not ('format done' in r):
+            r = self.dump()
+            if r != '':
+                log.info(r)
         return r
 
     def node_heap(self):
