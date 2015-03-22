@@ -255,7 +255,7 @@ def arg_auto_int(x):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'NodeMCU Lua file uploader', prog = 'nodemcu-uploader')
     parser.add_argument(
-            '--verbose', '-v',
+            '--verbose',
             help = 'verbose output',
             action = 'store_true',
             default = False)
