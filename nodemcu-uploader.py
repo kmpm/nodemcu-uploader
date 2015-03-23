@@ -59,6 +59,28 @@ class Uploader:
     PORT = '/dev/ttyUSB0'
     TIMEOUT = 1
 
+    def expect(self, exp='> ', timeout=TIMEOUT):
+        t = self._port.timeout
+
+        # Checking for new data every 100us is fast enough
+        lt = 0.0001
+        if self._port.timeout != lt:
+            self._port.timeout = lt
+
+        end = time.time() + timeout
+
+        # Finish as soon as either exp matches or we run out of time (work like dump, but faster on success)
+        data = ''
+        while not data.endswith(exp) and time.time() <= end:
+            data += self._port.read()
+
+        self._port.timeout = t
+        return data
+
+    def exchange(self, output):
+        self._port.write(output + '\r\n')
+        return self.expect()
+
     def __init__(self, port = 0, baud = BAUD):
         self._port = serial.Serial(port, Uploader.BAUD, timeout=Uploader.TIMEOUT)
 
@@ -67,14 +89,15 @@ class Uploader:
         ## DTR = GPIO0
         self._port.setRTS(False)
         self._port.setDTR(False)
-        time.sleep(0.5)
-        self.dump()
+
+        # Get in sync with LUA
+        self.exchange('')
 
         if baud != Uploader.BAUD:
             log.info('Changing communication to %s baud', baud)
             self._port.write('uart.setup(0,%s,8,0,1,1)\r\n' % baud)
             log.info(self.dump())
-            self._port.baudrate = 115200
+            self._port.baudrate = baud
 
         self.line_number = 0
 
@@ -204,8 +227,7 @@ class Uploader:
 
     def file_list(self):
         log.info('Listing files')
-        self._port.write('for key,value in pairs(file.list()) do print(key,value) end' + '\r\n')
-        r = self.dump()
+        r = self.exchange('for key,value in pairs(file.list()) do print(key,value) end')
         log.info(r)
         return r
 
