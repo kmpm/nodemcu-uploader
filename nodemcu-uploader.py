@@ -77,8 +77,11 @@ class Uploader:
         self._port.timeout = t
         return data
 
-    def exchange(self, output):
+    def write(self, output):
         self._port.write(output + '\r\n')
+
+    def exchange(self, output):
+        self.write(output)
         return self.expect()
 
     def __init__(self, port = 0, baud = BAUD):
@@ -95,14 +98,13 @@ class Uploader:
 
         if baud != Uploader.BAUD:
             log.info('Changing communication to %s baud', baud)
-            self._port.write('uart.setup(0,%s,8,0,1,1)\r\n' % baud)
-            log.info(self.dump())
+            self.exchange('uart.setup(0,%s,8,0,1,1)' % baud)
             self._port.baudrate = baud
 
         self.line_number = 0
 
     def close(self):
-        self._port.write('uart.setup(0,%s,8,0,1,1)\r\n' % Uploader.BAUD)
+        self.write('uart.setup(0,%s,8,0,1,1)' % Uploader.BAUD)
         self._port.close()
 
     def dump(self, timeout=TIMEOUT):
