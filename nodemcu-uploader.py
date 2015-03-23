@@ -74,8 +74,7 @@ class Uploader:
             log.info('Changing communication to %s baud', baud)
             self._port.write('uart.setup(0,%s,8,0,1,1)\r\n' % baud)
             log.info(self.dump())
-            self._port.close()
-            self._port = serial.Serial(port, baud, timeout=Uploader.TIMEOUT)
+            self._port.baudrate = 115200
 
         self.line_number = 0
 
