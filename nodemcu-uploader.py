@@ -238,6 +238,12 @@ class Uploader:
         log.info(r)
         return r
 
+    def file_do(self, f):
+        log.info('Executing '+f)
+        r = self.exchange('dofile("'+f+'")')
+        log.info(r)
+        return r
+
     def file_format(self):
         log.info('Formating...')
         self._port.write('file.format()' + '\r\n')
@@ -364,7 +370,8 @@ if __name__ == '__main__':
         'file',
         help = 'File functions')
 
-    file_parser.add_argument('cmd', choices=('list', 'format'))
+    file_parser.add_argument('cmd', choices=('list', 'do', 'format'))
+    file_parser.add_argument('filename', nargs='*', help = 'Lua file to run.')
 
     node_parse = subparsers.add_parser(
         'node', 
@@ -419,6 +426,9 @@ if __name__ == '__main__':
     elif args.operation == 'file':
         if args.cmd == 'list':
             uploader.file_list()
+        if args.cmd == 'do':
+            for f in args.filename:
+                uploader.file_do(f)
         elif args.cmd == 'format':
             uploader.file_format()
     
