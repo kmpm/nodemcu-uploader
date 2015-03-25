@@ -81,6 +81,7 @@ class Uploader:
     def write(self, output):
         log.debug('write: '+output)
         self._port.write(output + '\r\n')
+        self._port.flush()
 
     def exchange(self, output):
         self.write(output)
