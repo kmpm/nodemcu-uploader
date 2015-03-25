@@ -57,7 +57,7 @@ CHUNK_REPLY = '\v'
 class Uploader:
     BAUD = 9600
     PORT = '/dev/ttyUSB0'
-    TIMEOUT = 1
+    TIMEOUT = 3
 
     def expect(self, exp='> ', timeout=TIMEOUT):
         t = self._port.timeout
@@ -96,7 +96,9 @@ class Uploader:
         self._port.setRTS(False)
         self._port.setDTR(False)
 
-        # Get in sync with LUA
+        # Get in sync with LUA (this assumes that NodeMCU gets reset by the previous two lines)
+        self.expect('NodeMCU ')
+        self.expect()
         self.exchange('')
 
         if baud != Uploader.BAUD:
