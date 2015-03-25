@@ -75,9 +75,11 @@ class Uploader:
             data += self._port.read()
 
         self._port.timeout = t
+        log.debug('expect return: '+data)
         return data
 
     def write(self, output):
+        log.debug('write: '+output)
         self._port.write(output + '\r\n')
 
     def exchange(self, output):
