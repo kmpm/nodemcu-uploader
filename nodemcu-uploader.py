@@ -57,7 +57,7 @@ CHUNK_REPLY = '\v'
 class Uploader:
     BAUD = 9600
     PORT = '/dev/ttyUSB0'
-    TIMEOUT = 3
+    TIMEOUT = 5
 
     def expect(self, exp='> ', timeout=TIMEOUT):
         t = self._port.timeout
