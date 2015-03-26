@@ -367,9 +367,10 @@ if __name__ == '__main__':
     formatter = logging.Formatter('%(message)s')
     logging.basicConfig(level=logging.INFO, format='%(message)s')
 
-    uploader = Uploader(args.port, args.baud)
     if args.verbose:
         log.setLevel(logging.DEBUG)
+
+    uploader = Uploader(args.port, args.baud)
 
     if args.operation == 'upload' or args.operation == 'download':
         sources = args.filename
