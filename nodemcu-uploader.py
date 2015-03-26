@@ -109,8 +109,15 @@ class Uploader:
 
         if baud != Uploader.BAUD:
             log.info('Changing communication to %s baud', baud)
-            self.exchange('uart.setup(0,%s,8,0,1,1)' % baud)
-            self._port.baudrate = baud
+            self.writeln('uart.setup(0,%s,8,0,1,1)' % baud)
+
+            # Wait for the string to be sent before switching baud
+            time.sleep(0.1)
+            self._port.setBaudrate(baud)
+
+            # Get in sync again
+            self.exchange('')
+            self.exchange('')
 
         self.line_number = 0
 
