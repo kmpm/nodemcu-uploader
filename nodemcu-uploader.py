@@ -12,19 +12,15 @@ import logging
 
 log = logging.getLogger(__name__)
 
-def minify(script):
-    return ' '.join([line.strip() for line in script.split('\n')])
-
 save_lua = \
 r"""
 function recv_block(d)
   if string.byte(d, 1) == 1 then
     size = string.byte(d, 2)
-    if size > 0 then
-      file.write(string.sub(d, 3, 3+size-1))
-      uart.write(0,'\006')
+    uart.write(0,'\006')
+    if size > 0 then 
+      file.write(string.sub(d, 3, 3+size-1)) 
     else
-      uart.write(0,'\006')
       file.close()
       uart.on('data')
       uart.setup(0,9600,8,0,1,1)
@@ -35,21 +31,9 @@ function recv_block(d)
     uart.on('data')
   end
 end
-function recv_name(d)
-  d = string.gsub(d, '\000', '')
-  file.remove(d)
-  file.open(d, 'w')
-  uart.on('data', 130, recv_block, 0)
-  uart.write(0, '\006')
-end
-function recv()
-  uart.setup(0,9600,8,0,1,0)
-  uart.on('data', '\000', recv_name, 0)
-  uart.write(0, 'C')
-end
+function recv_name(d) d = string.gsub(d, '\000', '') file.remove(d) file.open(d, 'w') uart.on('data', 130, recv_block, 0) uart.write(0, '\006') end
+function recv() uart.setup(0,9600,8,0,1,0) uart.on('data', '\000', recv_name, 0) uart.write(0, 'C') end
 """
-#save_lua = minify(save_lua)
-#save_lua = ' '.join([line.strip().replace(', ', ',') for line in save_lua.split('\n')])
 
 CHUNK_END = '\v'
 CHUNK_REPLY = '\v'
@@ -132,6 +116,11 @@ class Uploader:
         lines = data.replace('\r', '').split('\n')
 
         for line in lines:
+            line = line.strip().replace(', ', ',').replace(' = ', '=')
+
+            if len(line) == 0:
+                continue
+
             d = self.exchange(line)
 
             if 'unexpected' in d or len(d) > len(save_lua)+10:
