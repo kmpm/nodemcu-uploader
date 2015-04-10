@@ -426,7 +426,9 @@ if __name__ == '__main__':
                     if args.compile:
                         uploader.file_compile(d)
                         uploader.file_remove(d)
-                    if args.dofile:
+                        if args.dofile:
+                            uploader.file_do(os.path.splitext(d)[0]+'.lc')
+                    elif args.dofile:
                         uploader.file_do(d)
             else:
                 raise Exception('You must specify a destination filename for each file you want to upload.')
