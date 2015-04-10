@@ -319,6 +319,13 @@ if __name__ == '__main__':
             action='store_true',
             default=False
             )
+
+    upload_parser.add_argument(
+            '--dofile', '-e',
+            help = 'If file should be run after upload.',
+            action='store_true',
+            default=False
+            )
     
     upload_parser.add_argument(
             '--restart', '-r',
@@ -387,6 +394,8 @@ if __name__ == '__main__':
                     if args.compile:
                         uploader.file_compile(d)
                         uploader.file_remove(d)
+                    if args.dofile:
+                        uploader.file_do(d)
             else:
                 raise Exception('You must specify a destination filename for each file you want to upload.')
 
