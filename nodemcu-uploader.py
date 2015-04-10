@@ -38,6 +38,19 @@ function recv() uart.setup(0,9600,8,0,1,0) uart.on('data', '\000', recv_name, 0)
 CHUNK_END = '\v'
 CHUNK_REPLY = '\v'
 
+from serial.tools.miniterm import Miniterm, console, NEWLINE_CONVERISON_MAP
+
+class MyMiniterm(Miniterm):
+    def __init__(self, serial):
+        self.serial = serial
+        self.echo = False
+        self.convert_outgoing = 2
+        self.repr_mode = 1
+        self.newline = NEWLINE_CONVERISON_MAP[self.convert_outgoing]
+        self.dtr_state = True
+        self.rts_state = True
+        self.break_state = False
+
 class Uploader:
     BAUD = 9600
     PORT = '/dev/ttyUSB0'
@@ -262,6 +275,18 @@ class Uploader:
         log.info(r)
         return r
 
+    def terminal(self):
+        miniterm = MyMiniterm(self._port)
+
+        log.info('Started terminal. Hit ctrl-] to leave terminal')
+
+        console.setup()
+        miniterm.start()
+        try:
+                miniterm.join(True)
+        except KeyboardInterrupt:
+                pass
+        miniterm.join()
 
 def arg_auto_int(x):
     return int(x, 0)
@@ -327,6 +352,13 @@ if __name__ == '__main__':
             default=False
             )
     
+    upload_parser.add_argument(
+            '--terminal', '-t',
+            help = 'If miniterm should claim the port after all uploading is done.',
+            action='store_true',
+            default=False
+    )
+
     upload_parser.add_argument(
             '--restart', '-r',
             help = 'If esp should be restarted',
@@ -399,6 +431,8 @@ if __name__ == '__main__':
             else:
                 raise Exception('You must specify a destination filename for each file you want to upload.')
 
+            if args.terminal:
+                uploader.terminal()
             if args.restart:
                 uploader.node_restart()
             log.info('All done!')
