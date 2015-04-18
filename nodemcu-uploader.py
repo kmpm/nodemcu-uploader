@@ -422,6 +422,8 @@ if __name__ == '__main__':
             if len(destinations) == len(sources):
                 uploader.prepare()
                 for f, d in zip(sources, destinations):
+                    if args.compile:
+                        uploader.file_remove(os.path.splitext(d)[0]+'.lc')
                     uploader.write_file(f, d, args.verify)
                     if args.compile:
                         uploader.file_compile(d)
