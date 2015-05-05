@@ -103,9 +103,9 @@ class Uploader:
         self._port.setDTR(False)
 
         # Get in sync with LUA (this assumes that NodeMCU gets reset by the previous two lines)
-        self.expect('NodeMCU ')
-        self.expect()
-        self.exchange('')
+        self.exchange(';'); # Get a defined state
+        self.writeln('print("%sync%");');
+        self.expect('%sync%\r\n> ');
 
         if baud != Uploader.BAUD:
             log.info('Changing communication to %s baud', baud)
