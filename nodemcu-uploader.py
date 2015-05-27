@@ -103,9 +103,9 @@ class Uploader:
         self._port.setDTR(False)
 
         # Get in sync with LUA (this assumes that NodeMCU gets reset by the previous two lines)
-        self.expect('NodeMCU ')
-        self.expect()
-        self.exchange('')
+        self.exchange(';'); # Get a defined state
+        self.writeln('print("%sync%");');
+        self.expect('%sync%\r\n> ');
 
         if baud != Uploader.BAUD:
             log.info('Changing communication to %s baud', baud)
@@ -196,6 +196,24 @@ class Uploader:
             data = self.download_file(destination)
             if content != data:
                 log.error('Verification failed.')
+
+    def exec_file(self, path):
+        filename = os.path.basename(path)
+        log.info('Execute %s' %(filename,))
+
+        f = open( path, 'rt' );
+
+        res = '> '
+        for line in f:
+            line = line.rstrip('\r\n')
+            retlines = (res + self.exchange(line)).splitlines()
+            # Log all but the last line
+            res = retlines.pop()
+            for l in retlines:
+                log.info(l)
+        # last line
+        log.info(res)
+        f.close()
 
     def got_ack(self):
         log.debug('waiting for ack')
@@ -338,6 +356,12 @@ if __name__ == '__main__':
             default=False
     )
 
+    exec_parser = subparsers.add_parser(
+            'exec',
+            help = 'Path to one or more files to be executed line by line.')
+
+    exec_parser.add_argument('filename', nargs='+', help = 'Lua file to execute.')
+
     download_parser = subparsers.add_parser(
             'download',
             help = 'Path to one or more files to be downloaded. Destination name will be the same as the file name.')
@@ -413,6 +437,11 @@ if __name__ == '__main__':
                 raise Exception('You must specify a destination filename for each file you want to download.')
             log.info('All done!')
 
+    elif args.operation == 'exec':
+        sources = args.filename
+        for f in sources:
+            uploader.exec_file(f)
+            
     elif args.operation == 'file':
         if args.cmd == 'list':
             uploader.file_list()
