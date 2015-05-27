@@ -12,19 +12,15 @@ import logging
 
 log = logging.getLogger(__name__)
 
-def minify(script):
-    return ' '.join([line.strip() for line in script.split('\n')])
-
 save_lua = \
 r"""
 function recv_block(d)
   if string.byte(d, 1) == 1 then
     size = string.byte(d, 2)
-    if size > 0 then
-      file.write(string.sub(d, 3, 3+size-1))
-      uart.write(0,'\006')
+    uart.write(0,'\006')
+    if size > 0 then 
+      file.write(string.sub(d, 3, 3+size-1)) 
     else
-      uart.write(0,'\006')
       file.close()
       uart.on('data')
       uart.setup(0,9600,8,0,1,1)
@@ -35,24 +31,25 @@ function recv_block(d)
     uart.on('data')
   end
 end
-function recv_name(d)
-  d = string.gsub(d, '\000', '')
-  file.remove(d)
-  file.open(d, 'w')
-  uart.on('data', 130, recv_block, 0)
-  uart.write(0, '\006')
-end
-function recv()
-  uart.setup(0,9600,8,0,1,0)
-  uart.on('data', '\000', recv_name, 0)
-  uart.write(0, 'C')
-end
+function recv_name(d) d = string.gsub(d, '\000', '') file.remove(d) file.open(d, 'w') uart.on('data', 130, recv_block, 0) uart.write(0, '\006') end
+function recv() uart.setup(0,9600,8,0,1,0) uart.on('data', '\000', recv_name, 0) uart.write(0, 'C') end
 """
-#save_lua = minify(save_lua)
-#save_lua = ' '.join([line.strip().replace(', ', ',') for line in save_lua.split('\n')])
 
 CHUNK_END = '\v'
 CHUNK_REPLY = '\v'
+
+from serial.tools.miniterm import Miniterm, console, NEWLINE_CONVERISON_MAP
+
+class MyMiniterm(Miniterm):
+    def __init__(self, serial):
+        self.serial = serial
+        self.echo = False
+        self.convert_outgoing = 2
+        self.repr_mode = 1
+        self.newline = NEWLINE_CONVERISON_MAP[self.convert_outgoing]
+        self.dtr_state = True
+        self.rts_state = True
+        self.break_state = False
 
 class Uploader:
     BAUD = 9600
@@ -132,6 +129,11 @@ class Uploader:
         lines = data.replace('\r', '').split('\n')
 
         for line in lines:
+            line = line.strip().replace(', ', ',').replace(' = ', '=')
+
+            if len(line) == 0:
+                continue
+
             d = self.exchange(line)
 
             if 'unexpected' in d or len(d) > len(save_lua)+10:
@@ -291,6 +293,18 @@ class Uploader:
         log.info(r)
         return r
 
+    def terminal(self):
+        miniterm = MyMiniterm(self._port)
+
+        log.info('Started terminal. Hit ctrl-] to leave terminal')
+
+        console.setup()
+        miniterm.start()
+        try:
+                miniterm.join(True)
+        except KeyboardInterrupt:
+                pass
+        miniterm.join()
 
 def arg_auto_int(x):
     return int(x, 0)
@@ -348,7 +362,21 @@ if __name__ == '__main__':
             action='store_true',
             default=False
             )
+
+    upload_parser.add_argument(
+            '--dofile', '-e',
+            help = 'If file should be run after upload.',
+            action='store_true',
+            default=False
+            )
     
+    upload_parser.add_argument(
+            '--terminal', '-t',
+            help = 'If miniterm should claim the port after all uploading is done.',
+            action='store_true',
+            default=False
+    )
+
     upload_parser.add_argument(
             '--restart', '-r',
             help = 'If esp should be restarted',
@@ -418,13 +446,21 @@ if __name__ == '__main__':
             if len(destinations) == len(sources):
                 uploader.prepare()
                 for f, d in zip(sources, destinations):
+                    if args.compile:
+                        uploader.file_remove(os.path.splitext(d)[0]+'.lc')
                     uploader.write_file(f, d, args.verify)
                     if args.compile:
                         uploader.file_compile(d)
                         uploader.file_remove(d)
+                        if args.dofile:
+                            uploader.file_do(os.path.splitext(d)[0]+'.lc')
+                    elif args.dofile:
+                        uploader.file_do(d)
             else:
                 raise Exception('You must specify a destination filename for each file you want to upload.')
 
+            if args.terminal:
+                uploader.terminal()
             if args.restart:
                 uploader.node_restart()
             log.info('All done!')
