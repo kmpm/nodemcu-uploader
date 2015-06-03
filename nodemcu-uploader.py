@@ -141,8 +141,16 @@ class Uploader:
                 return
 
     def download_file(self, filename):
-        d = self.exchange(r"file.open('" + filename + r"') print(file.seek('end', 0)) file.seek('set', 0) uart.write(0, file.read()) file.close()")
-        cmd, size, data = d.split('\n', 2)
+        chunk_size=256
+        bytes_read = 0
+        data=""
+        while True:
+            d = self.exchange("file.open('" + filename + r"') print(file.seek('end', 0)) file.seek('set', %d) uart.write(0, file.read(%d))file.close()" % (bytes_read, chunk_size))
+            cmd, size, tmp_data = d.split('\n', 2)
+            data=data+tmp_data[0:chunk_size]
+            bytes_read=bytes_read+chunk_size
+            if bytes_read > int(size):
+                break
         data = data[0:int(size)]
         return data
 
