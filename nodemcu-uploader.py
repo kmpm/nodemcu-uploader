@@ -55,23 +55,33 @@ class Uploader:
     BAUD = 9600
     PORT = '/dev/ttyUSB0'
     TIMEOUT = 5
+    CHAR_TIMEOUT = 0.1
+    BACKSPACE = chr(8)
 
-    def expect(self, exp='> ', timeout=TIMEOUT):
+    def getCharacter(self, timeout=CHAR_TIMEOUT):
         t = self._port.timeout
-
         # Checking for new data every 100us is fast enough
         lt = 0.0001
         if self._port.timeout != lt:
             self._port.timeout = lt
 
         end = time.time() + timeout
-
+        returnCharacter = ''
         # Finish as soon as either exp matches or we run out of time (work like dump, but faster on success)
-        data = ''
-        while not data.endswith(exp) and time.time() <= end:
-            data += self._port.read()
+        while returnCharacter == '' and time.time() <= end:
+            self._port.flush()
+            returnCharacter = self._port.read()
 
         self._port.timeout = t
+        return returnCharacter
+
+    def expect(self, exp='> ', timeout=TIMEOUT):
+        end = time.time() + timeout
+        data = self._receivedBuffer
+        self._receivedBuffer = ''
+        while not data.endswith(exp) and time.time() <= end:
+            data += self.getCharacter()
+
         log.debug('expect return: %s', data)
         return data
 
@@ -84,7 +94,44 @@ class Uploader:
         self._port.flush()
 
     def writeln(self, output):
-        self.write(output + '\n')
+        while True:
+            dataCorruption = False
+            self.write(output)
+            for sentChar in output:
+                self._receivedBuffer += self.getCharacter()
+
+                if self._receivedBuffer and self._receivedBuffer[-1] != sentChar:
+                    dataCorruption = True
+
+            if dataCorruption == False:
+                break
+
+            #print("Corruption occured:")
+            #print("  expected:", output)
+            #print("  actual:  ", self._receivedBuffer)
+
+            self._receivedBuffer = ''
+
+            # Do the equivilent of pressing the backspace key untill the line has been deleted
+            # from the bicrocontroller's input buffer.
+            backspacesComplete = False
+            while backspacesComplete == False:
+                backspacesComplete = False
+                backspaces = self.BACKSPACE * (len(output) + 4)
+                self.write(backspaces)
+
+                tmpChar = self.getCharacter()
+                while tmpChar:
+                    # TODO Work out why spaces are appearing in the data returned from the microcontroller.
+                    if tmpChar != self.BACKSPACE and tmpChar != ' ':
+                        print("Corruption occured while clearing buffer.", ord(tmpChar), ord(self.BACKSPACE))
+                        break
+                    tmpChar = self.getCharacter()
+                else:
+                    backspacesComplete = True
+
+        # The microcontroller's input buffer has the right data in it so press Enter.
+        self.write('\n')
 
     def exchange(self, output):
         self.writeln(output)
@@ -92,6 +139,8 @@ class Uploader:
 
     def __init__(self, port = 0, baud = BAUD):
         self._port = serial.Serial(port, Uploader.BAUD, timeout=Uploader.TIMEOUT)
+        
+        self._receivedBuffer = ''
 
         # Keeps things working, if following conections are made:
         ## RTS = CH_PD (i.e reset)
