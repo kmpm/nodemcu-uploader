@@ -457,7 +457,7 @@ if __name__ == '__main__':
                     if args.compile:
                         uploader.file_remove(os.path.splitext(d)[0]+'.lc')
                     uploader.write_file(f, d, args.verify)
-                    if args.compile:
+                    if args.compile and d != 'init.lua':
                         uploader.file_compile(d)
                         uploader.file_remove(d)
                         if args.dofile:
