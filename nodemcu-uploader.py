@@ -166,7 +166,7 @@ class Uploader:
         filename = os.path.basename(path)
         if not destination:
             destination = filename
-        log.info('Transfering %s as %s' %(filename, destination))
+        log.info('Transfering %s as %s' %(path, destination))
         self.writeln("recv()")
 
         r = self.expect('C> ')
