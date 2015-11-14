@@ -179,7 +179,7 @@ class Uploader:
             log.error('did not ack destination filename')
             return
 
-        f = open( path, 'rt' ); content = f.read(); f.close()
+        f = open( path, 'rb' ); content = f.read(); f.close()
         log.debug('sending %d bytes in %s' % (len(content), filename))
         pos = 0
         chunk_size = 128
