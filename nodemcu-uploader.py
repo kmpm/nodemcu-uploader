@@ -275,6 +275,12 @@ class Uploader:
             log.info(r)
         return r
 
+    def file_remove(self):
+        log.info('Removing...')
+        r = self.exchange('file.remove("'+f+'")')
+        log.info(r)
+        return r
+
     def node_heap(self):
         log.info('Heap')
         r = self.exchange('print(node.heap())')
@@ -419,7 +425,7 @@ if __name__ == '__main__':
         'file',
         help = 'File functions')
 
-    file_parser.add_argument('cmd', choices=('list', 'do', 'format'))
+    file_parser.add_argument('cmd', choices=('list', 'do', 'format', 'remove'))
     file_parser.add_argument('filename', nargs='*', help = 'Lua file to run.')
 
     node_parse = subparsers.add_parser(
@@ -494,6 +500,9 @@ if __name__ == '__main__':
                 uploader.file_do(f)
         elif args.cmd == 'format':
             uploader.file_format()
+        elif args.cmd == 'remove':
+            for f in args.filename:
+                uploader.file_remove(f)
     
     elif args.operation == 'node':
         if args.ncmd == 'heap':

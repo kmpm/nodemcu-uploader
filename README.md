@@ -58,6 +58,11 @@ Downloading a number of files, but saving with a different file name.
 ./nodemcu-uploader.py file format
 ```
 
+###Remove specific files
+```
+./nodemcu-uploader.py file remove foo.lua
+```
+
 Todo
 ----
 * Speed up the initial step of uploading the script to NodeMCU
