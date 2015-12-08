@@ -53,7 +53,8 @@ class MyMiniterm(Miniterm):
 
 class Uploader:
     BAUD = 9600
-    PORT = '/dev/ttyUSB0'
+    import platform
+    PORT = '/dev/tty.SLAB_USBtoUART' if platform.system() == 'Darwin' else '/dev/ttyUSB0'
     TIMEOUT = 5
 
     def expect(self, exp='> ', timeout=TIMEOUT):
