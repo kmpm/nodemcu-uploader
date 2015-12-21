@@ -63,6 +63,13 @@ Downloading a number of files, but saving with a different file name.
 ./nodemcu-uploader.py file remove foo.lua
 ```
 
+OS X Python serial module
+----
+To solve "ImportError: No module named serial", install the pyserial module:
+```sh
+python easy_install pyserial
+```
+
 Todo
 ----
 * Speed up the initial step of uploading the script to NodeMCU
