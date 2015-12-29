@@ -9,6 +9,7 @@ import sys
 import argparse
 import time
 import logging
+import hashlib
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +34,7 @@ function recv_block(d)
 end
 function recv_name(d) d = string.gsub(d, '\000', '') file.remove(d) file.open(d, 'w') uart.on('data', 130, recv_block, 0) uart.write(0, '\006') end
 function recv() uart.setup(0,9600,8,0,1,0) uart.on('data', '\000', recv_name, 0) uart.write(0, 'C') end
+function shafile(f) file.open(f, "r") print(crypto.toHex(crypto.hash("sha1",file.read()))) file.close() end
 """
 
 CHUNK_END = '\v'
@@ -163,7 +165,7 @@ class Uploader:
         with open(destination, 'w') as f:
             f.write(data)
 
-    def write_file(self, path, destination = '', verify = False):
+    def write_file(self, path, destination = '', verify = 'none'):
         filename = os.path.basename(path)
         if not destination:
             destination = filename
@@ -202,10 +204,20 @@ class Uploader:
         #zero size block
         self.write_chunk('')
 
-        if verify:
+        if verify == 'standard':
             log.info('Verifying...')
             data = self.download_file(destination)
             if content != data:
+                log.error('Verification failed.')
+        elif verify  == 'sha1':
+            #Calculate SHA1 on remote file. Extract just hash from result
+            data = self.exchange('shafile("'+destination+'")').splitlines()[1]
+            log.info('Remote SHA1: %s',data)
+
+            #Calculate hash of local data
+            filehashhex = hashlib.sha1(content.encode()).hexdigest()
+            log.info('Local SHA1: %s',filehashhex)
+            if data != filehashhex:
                 log.error('Verification failed.')
 
     def exec_file(self, path):
@@ -370,12 +382,14 @@ if __name__ == '__main__':
             action='store_true',
             default=False
             )
-    
+
     upload_parser.add_argument(
             '--verify', '-v',
             help = 'To verify the uploaded data.',
-            action='store_true',
-            default=False
+            action='store',
+            nargs='?',
+            choices=['standard','sha1'],
+            default='standard'
             )
 
     upload_parser.add_argument(
