@@ -1,16 +1,42 @@
 nodemcu-uploader.py
 ===================
-
-
 A simple tool for uploading files to the filesystem of an
 ESP8266 running NodeMCU as well as some other useful commands.
 
 It should work on Linux, Windows, and OS X; and with any type of file
 that fits the filesystem, binary or text.
 
+Installation
+-------------
+Should be installable by PyPI but it's not that tested yet.
+
+    pip install nodemcu-uploader
+    nodemcu-uploader.py
+
+Otherwise clone from github and run directly from there
+
+    git clone https://github.com/kmpm/nodemcu-uploader
+    cd nodemcu-uploader
+    ./nodemcu-uploader.py
+
+Support
+-------
+Create a issue in github, https://github.com/kmpm/nodemcu-uploader/issues
+
+Disclaimer
+-----------
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 
 Usage (part of it)
------
+------------------
 --port and --baud are set to default /dev/ttyUSB0 and 9600 respectively.
 
 ###Upload
