@@ -13,6 +13,8 @@ import hashlib
 
 log = logging.getLogger(__name__)
 
+__version__='0.1.1'
+
 save_lua = \
 r"""
 function recv_block(d)
