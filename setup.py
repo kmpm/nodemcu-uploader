@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='nodemcu-uploader',
-      version='0.1.1',
+      version='0.1.22',
       install_requires=[
           'pyserial==2.7'
       ],

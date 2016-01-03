@@ -9,7 +9,7 @@ It should work on Linux, Windows, and OS X; and with any type of file
 that fits the filesystem, binary or text.
 
 
-Usage
+Usage (part of it)
 -----
 --port and --baud are set to default /dev/ttyUSB0 and 9600 respectively.
 
@@ -74,6 +74,8 @@ Todo
 ----
 * Speed up the initial step of uploading the script to NodeMCU
 * Implement a change of baudrate for the actual transfer and go back when done
+* Documentation
+* --help should show full usage
 
 Details
 -------

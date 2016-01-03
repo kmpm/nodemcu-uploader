@@ -10,10 +10,11 @@ import argparse
 import time
 import logging
 import hashlib
+import warnings
 
 log = logging.getLogger(__name__)
 
-__version__='0.1.1'
+__version__='0.1.2'
 
 save_lua = \
 r"""
@@ -42,10 +43,31 @@ function shafile(f) file.open(f, "r") print(crypto.toHex(crypto.hash("sha1",file
 CHUNK_END = '\v'
 CHUNK_REPLY = '\v'
 
-from serial.tools.miniterm import Miniterm, console, NEWLINE_CONVERISON_MAP
+try:
+    from serial.tools.miniterm import Miniterm, console, NEWLINE_CONVERISON_MAP
+    MINITERM_AVAILABLE=True
+except ImportError:
+    MINITERM_AVAILABLE=False
 
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emmitted
+    when the function is used."""
+    def newFunc(*args, **kwargs):
+        warnings.warn("Call to deprecated function %s." % func.__name__,
+                      category=DeprecationWarning)
+        return func(*args, **kwargs)
+    newFunc.__name__ = func.__name__
+    newFunc.__doc__ = func.__doc__
+    newFunc.__dict__.update(func.__dict__)
+    return newFunc
+
+@deprecated
 class MyMiniterm(Miniterm):
     def __init__(self, serial):
+        if not MINITERM_AVAILABLE:
+            print "Miniterm is not available on this system"
+            return 
         self.serial = serial
         self.echo = False
         self.convert_outgoing = 2
@@ -322,7 +344,12 @@ class Uploader:
         log.info(r)
         return r
 
+    @deprecated
     def terminal(self):
+        if not MINITERM_AVAILABLE:
+            print "Miniterm is not available on this system"
+            return 
+
         miniterm = MyMiniterm(self._port)
 
         log.info('Started terminal. Hit ctrl-] to leave terminal')
