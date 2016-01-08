@@ -8,16 +8,17 @@ that fits the filesystem, binary or text.
 
 Installation
 -------------
-Should be installable by PyPI but it's not that tested yet.
+Should be installable by PyPI (prefered) but there might be
+packaging issues still.
 
     pip install nodemcu-uploader
-    nodemcu-uploader.py
+    nodemcu-uploader
 
 Otherwise clone from github and run directly from there
 
     git clone https://github.com/kmpm/nodemcu-uploader
     cd nodemcu-uploader
-    ./nodemcu-uploader.py
+    ./run.py
 
 Support
 -------
