@@ -6,10 +6,9 @@ import time
 import logging
 import hashlib
 import os
-from platform import system
 import serial
-
-from .luacode import SAVE_LUA
+from .utils import default_port
+from .luacode import SAVE_LUA, LIST_FILES, UART_SETUP
 
 log = logging.getLogger(__name__)
 
@@ -18,11 +17,6 @@ __all__ = ['Uploader', 'default_port']
 CHUNK_END = '\v'
 CHUNK_REPLY = '\v'
 
-def default_port():
-    return {
-        'Windows': 'COM1',
-        'Darwin': '/dev/tty.SLAB_USBtoUART'
-    }.get(system(), '/dev/ttyUSB0')
 
 class Uploader(object):
     BAUD = 9600
@@ -30,6 +24,7 @@ class Uploader(object):
     PORT = default_port()
 
     def __init__(self, port=PORT, baud=BAUD):
+        log.info('opening port %s', port)
         self._port = serial.Serial(port, Uploader.BAUD, timeout=Uploader.TIMEOUT)
 
         # Keeps things working, if following conections are made:
@@ -45,7 +40,7 @@ class Uploader(object):
 
         if baud != Uploader.BAUD:
             log.info('Changing communication to %s baud', baud)
-            self.writeln('uart.setup(0,%s,8,0,1,1)' % baud)
+            self.writeln(UART_SETUP.format(baud=baud))
 
             # Wait for the string to be sent before switching baud
             time.sleep(0.1)
@@ -91,18 +86,18 @@ class Uploader(object):
         self.writeln(output)
         return self.expect()
 
-
-
     def close(self):
-        self.writeln('uart.setup(0,%s,8,0,1,1)' % Uploader.BAUD)
+        self.writeln(UART_SETUP.format(baud=Uploader.BAUD))
         self._port.close()
 
     def prepare(self):
         log.info('Preparing esp for transfer.')
 
-        data = SAVE_LUA.replace('9600', '%d' % self._port.baudrate)
+        data = SAVE_LUA.format(baud=self._port.baudrate)
+        ##change any \r\n to just \n and split on that
         lines = data.replace('\r', '').split('\n')
 
+        #remove some unneccesary spaces to conserve some bytes
         for line in lines:
             line = line.strip().replace(', ', ',').replace(' = ', '=')
 
@@ -120,7 +115,7 @@ class Uploader(object):
         bytes_read = 0
         data = ""
         while True:
-            d = self.exchange("file.open('" + filename + r"') print(file.seek('end', 0)) file.seek('set', %d) uart.write(0, file.read(%d))file.close()" % (bytes_read, chunk_size))
+            d = self.exchange(DOWNLOAD_FILE.format(filename=filename, bytes_read=bytes_read, chunk_size=chunk_size))
             cmd, size, tmp_data = d.split('\n', 2)
             data = data + tmp_data[0:chunk_size]
             bytes_read = bytes_read + chunk_size
@@ -243,7 +238,7 @@ class Uploader(object):
 
     def file_list(self):
         log.info('Listing files')
-        res = self.exchange('for key,value in pairs(file.list()) do print(key,value) end')
+        res = self.exchange(LIST_FILES)
         log.info(res)
         return res
 

@@ -6,6 +6,7 @@ import argparse
 import logging
 import os
 from .uploader import Uploader
+from .term import terminal
 
 log = logging.getLogger(__name__)
 
@@ -101,16 +102,6 @@ def main_func():
         'upload',
         help='Path to one or more files to be uploaded. Destination name will be the same as the file name.')
 
-    # upload_parser.add_argument(
-    #         '--filename', '-f',
-    #         help = 'File to upload. You can specify this option multiple times.',
-    #         action='append')
-
-    # upload_parser.add_argument(
-    #         '--destination', '-d',
-    #         help = 'Name to be used when saving in NodeMCU. You should specify one per file.',
-    #         action='append')
-
     upload_parser.add_argument(
         'filename',
         nargs='+',
@@ -166,16 +157,24 @@ def main_func():
         'file',
         help='File functions')
 
-    file_parser.add_argument('cmd', choices=('list', 'do', 'format', 'remove'))
-    file_parser.add_argument('filename', nargs='*', help='Lua file to run.')
+    file_parser.add_argument(
+        'cmd', 
+        choices=('list', 'do', 'format', 'remove'), 
+        help="list=list files, do=dofile given path, format=formate file area, remove=remove given path")
+        
+    file_parser.add_argument('filename', nargs='*', help='path for cmd')
 
     node_parse = subparsers.add_parser(
         'node',
         help='Node functions')
 
-    node_parse.add_argument('ncmd', choices=('heap', 'restart'))
+    node_parse.add_argument('ncmd', choices=('heap', 'restart'), help="heap=print heap memory, restart=restart nodemcu")
 
-
+    terminal_parser = subparsers.add_parser(
+        'terminal', 
+        help='Run pySerials miniterm'
+    )
+    
     args = parser.parse_args()
 
     default_level = logging.INFO
@@ -209,5 +208,12 @@ def main_func():
             uploader.node_heap()
         elif args.ncmd == 'restart':
             uploader.node_restart()
-
+    #no uploader related commands after this point        
     uploader.close()
+    
+    if args.operation == 'terminal':
+        #uploader can not claim the port
+        uploader.close()
+        terminal(args.port)
+
+    
