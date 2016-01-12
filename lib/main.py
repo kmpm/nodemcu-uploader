@@ -9,8 +9,15 @@ from .uploader import Uploader
 from .term import terminal
 
 log = logging.getLogger(__name__)
+from .version import __version__
 
 def destination_from_source(sources):
+    """
+    Split each of the sources in the array on ':'
+    First part will be source, second will be destination.
+    Modifies the the original array to contain only sources
+    and returns an array of destinations.
+    """
     destinations = []
     for i in range(0, len(sources)):
         sd = sources[i].split(':')
@@ -21,7 +28,9 @@ def destination_from_source(sources):
             destinations.append(sd[0])
     return destinations
 
+
 def operation_upload(uploader, sources, verify, do_compile, do_file, do_restart):
+    """The upload operation"""
     destinations = destination_from_source(sources)
     if len(destinations) == len(sources):
         uploader.prepare()
@@ -43,7 +52,9 @@ def operation_upload(uploader, sources, verify, do_compile, do_file, do_restart)
         uploader.node_restart()
     log.info('All done!')
 
+
 def operation_download(uploader, sources):
+    """The download operation"""
     destinations = destination_from_source(sources)
     if len(destinations) == len(sources):
         for f, d in zip(sources, destinations):
@@ -52,7 +63,9 @@ def operation_download(uploader, sources):
         raise Exception('You must specify a destination filename for each file you want to download.')
     log.info('All done!')
 
+
 def operation_file(uploader, cmd, filename=''):
+    """File operations"""
     if cmd == 'list':
         uploader.file_list()
     if cmd == 'do':
@@ -82,6 +95,13 @@ def main_func():
         help='verbose output',
         action='store_true',
         default=False)
+
+    parser.add_argument(
+        '--version',
+        help='prints the version and exists',
+        action='version',
+        version='%(prog)s {version}'.format(version=__version__)
+    )
 
     parser.add_argument(
         '--port', '-p',
@@ -131,8 +151,6 @@ def main_func():
         default=False
         )
 
-
-
     upload_parser.add_argument(
         '--restart', '-r',
         help='If esp should be restarted',
@@ -158,10 +176,10 @@ def main_func():
         help='File functions')
 
     file_parser.add_argument(
-        'cmd', 
-        choices=('list', 'do', 'format', 'remove'), 
+        'cmd',
+        choices=('list', 'do', 'format', 'remove'),
         help="list=list files, do=dofile given path, format=formate file area, remove=remove given path")
-        
+
     file_parser.add_argument('filename', nargs='*', help='path for cmd')
 
     node_parse = subparsers.add_parser(
@@ -171,10 +189,10 @@ def main_func():
     node_parse.add_argument('ncmd', choices=('heap', 'restart'), help="heap=print heap memory, restart=restart nodemcu")
 
     terminal_parser = subparsers.add_parser(
-        'terminal', 
+        'terminal',
         help='Run pySerials miniterm'
     )
-    
+
     args = parser.parse_args()
 
     default_level = logging.INFO
@@ -186,6 +204,7 @@ def main_func():
     logging.basicConfig(level=default_level, format='%(message)s')
 
     uploader = Uploader(args.port, args.baud)
+
 
 
     if args.operation == 'upload':
@@ -208,12 +227,12 @@ def main_func():
             uploader.node_heap()
         elif args.ncmd == 'restart':
             uploader.node_restart()
-    #no uploader related commands after this point        
+    #no uploader related commands after this point
     uploader.close()
-    
+
     if args.operation == 'terminal':
         #uploader can not claim the port
         uploader.close()
         terminal(args.port)
 
-    
+

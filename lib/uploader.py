@@ -14,11 +14,11 @@ log = logging.getLogger(__name__)
 
 __all__ = ['Uploader', 'default_port']
 
-CHUNK_END = '\v'
-CHUNK_REPLY = '\v'
-
 
 class Uploader(object):
+    """Uploader is the class for communicating with the nodemcu and
+    that will allow various tasks like uploading files, formating the filesystem etc.
+    """
     BAUD = 9600
     TIMEOUT = 5
     PORT = default_port()
@@ -33,11 +33,13 @@ class Uploader(object):
         self._port.setRTS(False)
         self._port.setDTR(False)
 
-        # Get in sync with LUA (this assumes that NodeMCU gets reset by the previous two lines)
-        self.exchange(';') # Get a defined state
-        self.writeln('print("%sync%");')
-        self.expect('%sync%\r\n> ')
-
+        def sync():
+            # Get in sync with LUA (this assumes that NodeMCU gets reset by the previous two lines)
+            log.debug('getting in sync with LUA');
+            self.exchange(';') # Get a defined state
+            self.writeln('print("%sync%");')
+            self.expect('%sync%\r\n> ')
+        sync()
         if baud != Uploader.BAUD:
             log.info('Changing communication to %s baud', baud)
             self.writeln(UART_SETUP.format(baud=baud))
@@ -47,12 +49,12 @@ class Uploader(object):
             self._port.setBaudrate(baud)
 
             # Get in sync again
-            self.exchange('')
-            self.exchange('')
+            sync()
 
         self.line_number = 0
 
     def expect(self, exp='> ', timeout=TIMEOUT):
+        """will wait for exp to be returned from nodemcu or timeout"""
         timer = self._port.timeout
 
         # Checking for new data every 100us is fast enough
@@ -72,6 +74,8 @@ class Uploader(object):
         return data
 
     def write(self, output, binary=False):
+        """write data on the nodemcu port. If 'binary' is True the debug log
+        will show the intended output as hex, otherwise as string"""
         if not binary:
             log.debug('write: %s', output)
         else:
@@ -80,6 +84,7 @@ class Uploader(object):
         self._port.flush()
 
     def writeln(self, output):
+        """write, with linefeed"""
         self.write(output + '\n')
 
     def exchange(self, output):
@@ -87,10 +92,15 @@ class Uploader(object):
         return self.expect()
 
     def close(self):
+        """restores the nodemcu to default baudrate and then closes the port"""
         self.writeln(UART_SETUP.format(baud=Uploader.BAUD))
         self._port.close()
 
     def prepare(self):
+        """
+        This uploads the protocol functions nessecary to do binary
+        chunked transfer
+        """
         log.info('Preparing esp for transfer.')
 
         data = SAVE_LUA.format(baud=self._port.baudrate)

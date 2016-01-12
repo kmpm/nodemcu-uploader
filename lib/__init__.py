@@ -4,4 +4,5 @@
 
 """Library and util for uploading files to NodeMCU version 0.9.4 and later"""
 
-__version__ = '0.1.2'
+from .version import __version__
+from .uploader import Uploader

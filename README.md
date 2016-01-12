@@ -18,11 +18,16 @@ Otherwise clone from github and run directly from there
 
     git clone https://github.com/kmpm/nodemcu-uploader
     cd nodemcu-uploader
-    ./run.py
+    python ./run.py
 
-Support
+### Notes for Windows
+This might work with 64 bit Python but is not tested.
+
+
+Issues
 -------
 Create a issue in github, https://github.com/kmpm/nodemcu-uploader/issues
+
 
 Disclaimer
 -----------
@@ -38,12 +43,14 @@ SOFTWARE.
 
 Usage (part of it)
 ------------------
---port and --baud are set to default /dev/ttyUSB0 and 9600 respectively.
+* --baud are set at a default of 9600
+* --port is by default __/dev/ttyUSB0__,
+  __/dev/tty.SLAB_USBtoUART__ if on Mac and __COM1__ on Windows
 
 ###Upload
 Uploading a number of files.
 Supports multiple files. If you want an alternate destination name, just
-add a colon ":" and the new destination filename. 
+add a colon ":" and the new destination filename.
 
 ```
 ./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py [--compile] [--restart]
@@ -64,7 +71,7 @@ Uploading a number of files and verify successful uploading.
 ###Download
 Downloading a number of files.
 Supports multiple files. If you want an alternate destination name, just
-add a colon ":" and the new destination filename. 
+add a colon ":" and the new destination filename.
 ```
 ./nodemcu-uploader.py download init.lua README.md nodemcu-uploader.py
 ```

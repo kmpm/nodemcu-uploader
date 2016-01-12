@@ -4,8 +4,10 @@
 from .utils import default_port
 try:
     from serial.tools.miniterm import Miniterm, console, NEWLINE_CONVERISON_MAP
+    import serial
     MINITERM_AVAILABLE=True
 except ImportError:
+    
     MINITERM_AVAILABLE=False
     
     
@@ -35,7 +37,7 @@ def terminal(port=default_port()):
     ## DTR = GPIO0
     sp.setRTS(False)
     sp.setDTR(False)
-    miniterm = MyMiniterm(sp)
+    miniterm = McuMiniterm(sp)
 
     log.info('Started terminal. Hit ctrl-] to leave terminal')
 
