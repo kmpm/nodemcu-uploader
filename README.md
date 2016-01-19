@@ -18,7 +18,11 @@ Otherwise clone from github and run directly from there
 
     git clone https://github.com/kmpm/nodemcu-uploader
     cd nodemcu-uploader
-    python ./run.py
+    python ./nodemcu-uploader.py
+
+Note that pip would install pyserial >=3.0. pyserial 2.7 should work
+but there might be some bugs that could bite you.
+
 
 ### Notes for Windows
 This might work with 64 bit Python but is not tested.

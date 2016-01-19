@@ -7,6 +7,7 @@ import logging
 import os
 from .uploader import Uploader
 from .term import terminal
+from serial import VERSION as serialversion
 
 log = logging.getLogger(__name__)
 from .version import __version__
@@ -100,7 +101,7 @@ def main_func():
         '--version',
         help='prints the version and exists',
         action='version',
-        version='%(prog)s {version}'.format(version=__version__)
+        version='%(prog)s {version} (serial {serialversion})'.format(version=__version__, serialversion=serialversion)
     )
 
     parser.add_argument(
