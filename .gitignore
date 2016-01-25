@@ -1,6 +1,8 @@
 *.egg-info/
+.eggs
 dist/
 build/
 *.pyc
+.coverage
 
 .vscode/

@@ -20,6 +20,7 @@ setup(name='nodemcu-uploader',
           'Programming Language :: Python :: 2.7'
       ],
       license='MIT',
+      test_suite = "tests.get_tests",
       entry_points={
           'console_scripts': [
               'nodemcu-uploader=nodemcu_uploader.main:main_func'

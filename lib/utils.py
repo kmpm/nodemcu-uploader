@@ -4,10 +4,10 @@
 
 from platform import system
 
-def default_port():
+def default_port(sysname = system()):
     """This returns the default port used for different systems"""
     return {
         'Windows': 'COM1',
         'Darwin': '/dev/tty.SLAB_USBtoUART'
-    }.get(system(), '/dev/ttyUSB0')
+    }.get(sysname, '/dev/ttyUSB0')
 
