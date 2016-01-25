@@ -11,6 +11,7 @@ import time
 import logging
 import hashlib
 import warnings
+import progressbar
 
 log = logging.getLogger(__name__)
 
@@ -144,14 +145,29 @@ class Uploader:
             self.exchange('')
 
         self.line_number = 0
+        self.prepare2 = False
 
     def close(self):
         self.writeln('uart.setup(0,%s,8,0,1,1)' % Uploader.BAUD)
         self._port.close()
 
     def prepare(self):
-        log.info('Preparing esp for transfer.')
 
+        begin = time.time()
+
+        if self.prepare2:
+            log.info('Preparing esp for transfer (method 2).')
+            fns = ['recv_block', 'recv_name','recv','shafile']
+            found_fns = 0
+            for fn in fns:
+                d = self.exchange('print({0})'.format(fn))
+                if d.find('function:') != -1:
+                    found_fns += 1
+            if found_fns == len(fns):
+                log.info('Prepared in {0:.4}s'.format(time.time() - begin))
+                return
+
+        log.info('Preparing esp for transfer.')
         data = save_lua.replace('9600', '%d' % self._port.baudrate)
         lines = data.replace('\r', '').split('\n')
 
@@ -166,6 +182,8 @@ class Uploader:
             if 'unexpected' in d or len(d) > len(save_lua)+10:
                 log.error('error in save_lua "%s"' % d)
                 return
+
+        log.info('Prepared in {0:.4}s'.format(time.time() - begin))
 
     def download_file(self, filename):
         chunk_size=256
@@ -190,6 +208,9 @@ class Uploader:
             f.write(data)
 
     def write_file(self, path, destination = '', verify = 'none'):
+
+        begin = time.time()
+
         filename = os.path.basename(path)
         if not destination:
             destination = filename
@@ -211,6 +232,7 @@ class Uploader:
         pos = 0
         chunk_size = 128
         error = False
+        pbar = progressbar.ProgressBar(widgets=[progressbar.Percentage(), progressbar.Bar()], maxval=len(content), term_width=36).start()
         while pos < len(content):
             rest = len(content) - pos
             if rest > chunk_size:
@@ -223,6 +245,8 @@ class Uploader:
                 return
 
             pos += chunk_size
+            pbar.update(min(pos, len(content)))
+        log.info('')
 
         log.debug('sending zero block')
         #zero size block
@@ -243,6 +267,8 @@ class Uploader:
             log.info('Local SHA1: %s',filehashhex)
             if data != filehashhex:
                 log.error('Verification failed.')
+
+        log.info('Uploaded {0} bytes in {1:.4}s'.format(len(content), time.time() - begin))
 
     def exec_file(self, path):
         filename = os.path.basename(path)
@@ -488,6 +514,7 @@ if __name__ == '__main__':
         log.setLevel(logging.DEBUG)
 
     uploader = Uploader(args.port, args.baud)
+    uploader.prepare2 = True
 
     if args.operation == 'upload' or args.operation == 'download':
         sources = args.filename
