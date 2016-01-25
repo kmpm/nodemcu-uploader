@@ -25,7 +25,10 @@ class Uploader(object):
 
     def __init__(self, port=PORT, baud=BAUD):
         log.info('opening port %s', port)
-        self._port = serial.Serial(port, Uploader.BAUD, timeout=Uploader.TIMEOUT)
+        if port == 'loop://':
+            self._port = serial.serial_for_url(port, baud, timeout=Uploader.TIMEOUT)
+        else:
+            self._port = serial.Serial(port, baud, timeout=Uploader.TIMEOUT)
 
         # Keeps things working, if following conections are made:
         ## RTS = CH_PD (i.e reset)
@@ -52,7 +55,7 @@ class Uploader(object):
             sync()
 
         self.line_number = 0
-    
+
     def set_baudrate(self, baud):
         try:
             self._port.setBaudrate(baud)
