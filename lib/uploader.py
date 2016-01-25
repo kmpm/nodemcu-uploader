@@ -46,12 +46,18 @@ class Uploader(object):
 
             # Wait for the string to be sent before switching baud
             time.sleep(0.1)
-            self._port.setBaudrate(baud)
+            self.set_baudrate(baud)
 
             # Get in sync again
             sync()
 
         self.line_number = 0
+    
+    def set_baudrate(self, baud):
+        try:
+            self._port.setBaudrate(baud)
+        except AttributeError:
+            self._port.baudrate = baud
 
     def expect(self, exp='> ', timeout=TIMEOUT):
         """will wait for exp to be returned from nodemcu or timeout"""
