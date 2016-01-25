@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
 import unittest
 from lib.utils import default_port
 from lib import __version__

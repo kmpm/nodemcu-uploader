@@ -7,15 +7,15 @@ try:
     import serial
     MINITERM_AVAILABLE=True
 except ImportError:
-    
+
     MINITERM_AVAILABLE=False
-    
-    
+
+
 class McuMiniterm(Miniterm):
     def __init__(self, serial):
         if not MINITERM_AVAILABLE:
             print "Miniterm is not available on this system"
-            return 
+            return
         self.serial = serial
         self.echo = False
         self.convert_outgoing = 2
@@ -24,8 +24,8 @@ class McuMiniterm(Miniterm):
         self.dtr_state = True
         self.rts_state = True
         self.break_state = False
-        
-        
+
+
 def terminal(port=default_port()):
     if not MINITERM_AVAILABLE:
         print "Miniterm is not available on this system"

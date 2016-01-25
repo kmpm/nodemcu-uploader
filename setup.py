@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
 from setuptools import setup
 
 exec(open('lib/version.py').read())
