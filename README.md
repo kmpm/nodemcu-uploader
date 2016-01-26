@@ -1,5 +1,8 @@
 nodemcu-uploader.py
 ===================
+
+[![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=master)](https://travis-ci.org/kmpm/nodemcu-uploader)
+
 A simple tool for uploading files to the filesystem of an
 ESP8266 running NodeMCU as well as some other useful commands.
 
