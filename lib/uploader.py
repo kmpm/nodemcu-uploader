@@ -11,7 +11,7 @@ import serial
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
 
 from .utils import default_port
-from .luacode import SAVE_LUA, LIST_FILES, UART_SETUP
+from .luacode import DOWNLOAD_FILE, SAVE_LUA, LUA_FUNCTIONS, LIST_FILES, UART_SETUP
 
 log = logging.getLogger(__name__)
 
@@ -115,6 +115,14 @@ class Uploader(object):
         """
         log.info('Preparing esp for transfer.')
 
+        for fn in LUA_FUNCTIONS:
+            d = self.exchange('print({0})'.format(fn))
+            if d.find('function:') == -1:
+                break
+        else:
+            log.debug('Found all required lua functions, no need to upload them')
+            return
+            
         data = SAVE_LUA.format(baud=self._port.baudrate)
         ##change any \r\n to just \n and split on that
         lines = data.replace('\r', '').split('\n')
