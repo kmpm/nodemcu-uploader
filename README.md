@@ -1,5 +1,11 @@
 nodemcu-uploader.py
 ===================
+
+| master | next |
+|--------|------|
+|[![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=master)](https://travis-ci.org/kmpm/nodemcu-uploader) | [![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=next)](https://travis-ci.org/kmpm/nodemcu-uploader) |
+
+
 A simple tool for uploading files to the filesystem of an
 ESP8266 running NodeMCU as well as some other useful commands.
 
@@ -8,20 +14,30 @@ that fits the filesystem, binary or text.
 
 Installation
 -------------
-Should be installable by PyPI but it's not that tested yet.
+Should be installable by PyPI (prefered) but there might be
+packaging issues still.
 
     pip install nodemcu-uploader
-    nodemcu-uploader.py
+    nodemcu-uploader
 
 Otherwise clone from github and run directly from there
 
     git clone https://github.com/kmpm/nodemcu-uploader
     cd nodemcu-uploader
-    ./nodemcu-uploader.py
+    python ./nodemcu-uploader.py
 
-Support
+Note that pip would install pyserial >=3.0. pyserial 2.7 should work
+but there might be some bugs that could bite you.
+
+
+### Notes for Windows
+This might work with 64 bit Python but is not tested.
+
+
+Issues
 -------
 Create a issue in github, https://github.com/kmpm/nodemcu-uploader/issues
+
 
 Disclaimer
 -----------
@@ -37,12 +53,14 @@ SOFTWARE.
 
 Usage (part of it)
 ------------------
---port and --baud are set to default /dev/ttyUSB0 and 9600 respectively.
+* --baud are set at a default of 9600
+* --port is by default __/dev/ttyUSB0__,
+  __/dev/tty.SLAB_USBtoUART__ if on Mac and __COM1__ on Windows
 
 ###Upload
 Uploading a number of files.
 Supports multiple files. If you want an alternate destination name, just
-add a colon ":" and the new destination filename. 
+add a colon ":" and the new destination filename.
 
 ```
 ./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py [--compile] [--restart]
@@ -63,7 +81,7 @@ Uploading a number of files and verify successful uploading.
 ###Download
 Downloading a number of files.
 Supports multiple files. If you want an alternate destination name, just
-add a colon ":" and the new destination filename. 
+add a colon ":" and the new destination filename.
 ```
 ./nodemcu-uploader.py download init.lua README.md nodemcu-uploader.py
 ```
