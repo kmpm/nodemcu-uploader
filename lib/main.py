@@ -34,18 +34,20 @@ def operation_upload(uploader, sources, verify, do_compile, do_file, do_restart)
     """The upload operation"""
     destinations = destination_from_source(sources)
     if len(destinations) == len(sources):
-        uploader.prepare()
-        for f, d in zip(sources, destinations):
-            if do_compile:
-                uploader.file_remove(os.path.splitext(d)[0]+'.lc')
-            uploader.write_file(f, d, verify)
-            if do_compile and d != 'init.lua':
-                uploader.file_compile(d)
-                uploader.file_remove(d)
-                if do_file:
-                    uploader.file_do(os.path.splitext(d)[0]+'.lc')
-            elif do_file:
-                uploader.file_do(d)
+        if uploader.prepare():
+            for f, d in zip(sources, destinations):
+                if do_compile:
+                    uploader.file_remove(os.path.splitext(d)[0]+'.lc')
+                uploader.write_file(f, d, verify)
+                if do_compile and d != 'init.lua':
+                    uploader.file_compile(d)
+                    uploader.file_remove(d)
+                    if do_file:
+                        uploader.file_do(os.path.splitext(d)[0]+'.lc')
+                elif do_file:
+                    uploader.file_do(d)
+        else:
+            raise Exception('Error preparing nodemcu for reception') 
     else:
         raise Exception('You must specify a destination filename for each file you want to upload.')
 
@@ -141,8 +143,8 @@ def main_func():
         help='To verify the uploaded data.',
         action='store',
         nargs='?',
-        choices=['standard', 'sha1'],
-        default='standard'
+        choices=['none', 'text', 'sha1'],
+        default='none'
         )
 
     upload_parser.add_argument(

@@ -7,8 +7,6 @@ import logging
 import hashlib
 import os
 import serial
-# -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
 
 from .utils import default_port
 from .luacode import DOWNLOAD_FILE, SAVE_LUA, LUA_FUNCTIONS, LIST_FILES, UART_SETUP
@@ -27,7 +25,7 @@ class Uploader(object):
     PORT = default_port()
 
     def __init__(self, port=PORT, baud=BAUD):
-        log.info('opening port %s', port)
+        log.info('opening port %s with %s baud', port, baud)
         if port == 'loop://':
             self._port = serial.serial_for_url(port, baud, timeout=Uploader.TIMEOUT)
         else:
@@ -42,6 +40,7 @@ class Uploader(object):
         def sync():
             # Get in sync with LUA (this assumes that NodeMCU gets reset by the previous two lines)
             log.debug('getting in sync with LUA');
+            self.clear_buffers()
             self.exchange(';') # Get a defined state
             self.writeln('print("%sync%");')
             self.expect('%sync%\r\n> ')
@@ -63,7 +62,19 @@ class Uploader(object):
         try:
             self._port.setBaudrate(baud)
         except AttributeError:
+            #pySerial 2.7
             self._port.baudrate = baud
+    
+    
+    def clear_buffers(self):
+        try:
+            self._port.reset_input_buffer()
+            self._port.reset_output_buffer()
+        except AttributeError:
+            #pySerial 2.7
+            self._port.flushInput()
+            self._port.flushOutput()
+        
 
     def expect(self, exp='> ', timeout=TIMEOUT):
         """will wait for exp to be returned from nodemcu or timeout"""
@@ -80,9 +91,12 @@ class Uploader(object):
         data = ''
         while not data.endswith(exp) and time.time() <= end:
             data += self._port.read()
-
+        
+        if time.time() > end and not data.endswith(exp) and len(exp) > 0:
+            raise Exception('Timeout expecting ' + exp)
+        
         self._port.timeout = timer
-        log.debug('expect return: %s', data)
+        log.debug('expect returned: `{0}`'.format(data))
         return data
 
     def write(self, output, binary=False):
@@ -101,11 +115,15 @@ class Uploader(object):
 
     def exchange(self, output):
         self.writeln(output)
+        self._port.flush()
         return self.expect()
 
     def close(self):
         """restores the nodemcu to default baudrate and then closes the port"""
         self.writeln(UART_SETUP.format(baud=Uploader.BAUD))
+        self._port.flush()
+        self.clear_buffers()
+        log.debug('closing port')
         self._port.close()
 
     def prepare(self):
@@ -121,7 +139,7 @@ class Uploader(object):
                 break
         else:
             log.debug('Found all required lua functions, no need to upload them')
-            return
+            return True
             
         data = SAVE_LUA.format(baud=self._port.baudrate)
         ##change any \r\n to just \n and split on that
@@ -136,9 +154,10 @@ class Uploader(object):
 
             d = self.exchange(line)
             #do some basic test of the result
-            if 'unexpected' in d or len(d) > len(SAVE_LUA)+10:
+            if ('unexpected' in d) or ('stdin' in d) or len(d) > len(SAVE_LUA)+10:
                 log.error('error in save_lua "%s"', d)
-                return
+                return False
+        return True
 
     def download_file(self, filename):
         chunk_size = 256
@@ -262,7 +281,7 @@ class Uploader(object):
             data = data + (' ' * padding)
         log.debug("packet size %d", len(data))
         self.write(data)
-
+        self._port.flush()
         return self.got_ack()
 
 
