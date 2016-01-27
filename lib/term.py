@@ -3,12 +3,17 @@
 
 from .utils import default_port
 try:
-    from serial.tools.miniterm import Miniterm, console, NEWLINE_CONVERISON_MAP
+    from serial.tools.miniterm import Miniterm, NEWLINE_CONVERISON_MAP
     import serial
     MINITERM_AVAILABLE=True
 except ImportError:
-
     MINITERM_AVAILABLE=False
+    
+try:
+    from serial.tools.miniterm import console
+    CONSOLE_AVAILABLE=True
+except ImportError:
+    CONSOLE_AVAILABLE=False
 
 
 class McuMiniterm(Miniterm):
@@ -31,7 +36,7 @@ def terminal(port=default_port()):
         print "Miniterm is not available on this system"
         return False
     sp = serial.Serial(port, 9600)
-
+    
     # Keeps things working, if following conections are made:
     ## RTS = CH_PD (i.e reset)
     ## DTR = GPIO0
@@ -40,12 +45,12 @@ def terminal(port=default_port()):
     miniterm = McuMiniterm(sp)
 
     log.info('Started terminal. Hit ctrl-] to leave terminal')
-
-    console.setup()
+    if CONSOLE_AVAILABLE:
+        console.setup()
     miniterm.start()
     try:
-            miniterm.join(True)
+        miniterm.join(True)
     except KeyboardInterrupt:
-            pass
+        pass
     miniterm.join()
     sp.close()

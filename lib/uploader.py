@@ -120,9 +120,12 @@ class Uploader(object):
 
     def close(self):
         """restores the nodemcu to default baudrate and then closes the port"""
-        self.writeln(UART_SETUP.format(baud=Uploader.BAUD))
-        self._port.flush()
-        self.clear_buffers()
+        try:
+            self.writeln(UART_SETUP.format(baud=Uploader.BAUD))
+            self._port.flush()
+            self.clear_buffers()
+        except serial.serialutil.SerialException:
+            pass
         log.debug('closing port')
         self._port.close()
 
