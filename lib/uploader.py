@@ -8,6 +8,7 @@ import hashlib
 import os
 import serial
 
+from .exceptions import CommunicationTimeout, DeviceNotFoundException, BadResponseException
 from .utils import default_port, system
 from .luacode import DOWNLOAD_FILE, RECV_LUA, SEND_LUA, LUA_FUNCTIONS, LIST_FILES, UART_SETUP, PRINT_FILE
 
@@ -46,10 +47,15 @@ class Uploader(object):
             # Get in sync with LUA (this assumes that NodeMCU gets reset by the previous two lines)
             log.debug('getting in sync with LUA');
             self.clear_buffers()
-            self.exchange(';') # Get a defined state
-            self.writeln('print("%sync%");')
-            self.expect('%sync%\r\n> ')
+            try:
+                self.exchange(';') # Get a defined state
+                self.writeln('print("%sync%");')
+                self.expect('%sync%\r\n> ')
+            except CommunicationTimeout:
+                raise DeviceNotFoundException('Device not found or wrong port')
+
         sync()
+
         if baud != Uploader.BAUD:
             log.info('Changing communication to %s baud', baud)
             self.writeln(UART_SETUP.format(baud=baud))
@@ -83,6 +89,7 @@ class Uploader(object):
 
     def expect(self, exp='> ', timeout=TIMEOUT):
         """will wait for exp to be returned from nodemcu or timeout"""
+        #do NOT set timeout on Windows
         if SYSTEM != 'Windows':
             timer = self._port.timeout
 
@@ -99,8 +106,12 @@ class Uploader(object):
             data += self._port.read()
 
         log.debug('expect returned: `{0}`'.format(data))
-        if time.time() > end and not data.endswith(exp) and len(exp) > 0:
-            raise Exception('Timeout expecting ' + exp)
+        if time.time() > end:
+            raise CommunicationTimeout('Timeout waiting for data', data)
+
+        if not data.endswith(exp) and len(exp) > 0:
+            raise BadResponseException('Bad response.', exp, data)
+
         if SYSTEM != 'Windows':
             self._port.timeout = timer
 
@@ -120,10 +131,10 @@ class Uploader(object):
         """write, with linefeed"""
         self.write(output + '\n')
 
-    def exchange(self, output):
+    def exchange(self, output, timeout=TIMEOUT):
         self.writeln(output)
         self._port.flush()
-        return self.expect()
+        return self.expect(timeout=timeout)
 
     def close(self):
         """restores the nodemcu to default baudrate and then closes the port"""
@@ -352,8 +363,8 @@ class Uploader(object):
         return res
 
     def file_format(self):
-        log.info('Formating...')
-        res = self.exchange('file.format()')
+        log.info('Formating, can take up to 1 minute...')
+        res = self.exchange('file.format()', timeout=60)
         if 'format done' not in res:
             log.error(res)
         else:
