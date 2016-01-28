@@ -120,6 +120,12 @@ def main_func():
         type=arg_auto_int,
         default=Uploader.BAUD)
 
+    parser.add_argument(
+        '--start_baud', '-B',
+        help='Initial Serial port baudrate',
+        type=arg_auto_int,
+        default=Uploader.START_BAUD)
+
     subparsers = parser.add_subparsers(
         dest='operation',
         help='Run nodemcu-uploader {command} -h for additional help')
@@ -209,9 +215,7 @@ def main_func():
 
     logging.basicConfig(level=default_level, format='%(message)s')
 
-    uploader = Uploader(args.port, args.baud)
-
-
+    uploader = Uploader(args.port, args.baud, start_baud=args.start_baud)
 
     if args.operation == 'upload':
         operation_upload(uploader, args.filename, args.verify, args.compile, args.dofile,

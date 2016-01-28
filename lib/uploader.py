@@ -26,17 +26,20 @@ class Uploader(object):
     """Uploader is the class for communicating with the nodemcu and
     that will allow various tasks like uploading files, formating the filesystem etc.
     """
-    BAUD = 9600
+    BAUD = 115200
+    START_BAUD = 9600
     TIMEOUT = 5
     PORT = default_port()
 
-    def __init__(self, port=PORT, baud=BAUD):
-        log.info('opening port %s with %s baud', port, baud)
+    def __init__(self, port=PORT, baud=BAUD, start_baud=START_BAUD):
+        log.info('opening port %s with %s baud', port, start_baud)
         if port == 'loop://':
-            self._port = serial.serial_for_url(port, baud, timeout=Uploader.TIMEOUT)
+            self._port = serial.serial_for_url(port, start_baud, timeout=Uploader.TIMEOUT)
         else:
-            self._port = serial.Serial(port, baud, timeout=Uploader.TIMEOUT)
+            self._port = serial.Serial(port, start_baud, timeout=Uploader.TIMEOUT)
 
+        self.start_baud = start_baud
+        self.baud = baud
         # Keeps things working, if following conections are made:
         ## RTS = CH_PD (i.e reset)
         ## DTR = GPIO0
@@ -56,12 +59,7 @@ class Uploader(object):
 
         sync()
 
-        if baud != Uploader.BAUD:
-            log.info('Changing communication to %s baud', baud)
-            self.writeln(UART_SETUP.format(baud=baud))
-
-            # Wait for the string to be sent before switching baud
-            time.sleep(0.1)
+        if baud != start_baud:
             self.set_baudrate(baud)
 
             # Get in sync again
@@ -70,6 +68,10 @@ class Uploader(object):
         self.line_number = 0
 
     def set_baudrate(self, baud):
+        log.info('Changing communication to %s baud', baud)
+        self.writeln(UART_SETUP.format(baud=baud))
+        # Wait for the string to be sent before switching baud
+        time.sleep(0.1)
         try:
             self._port.setBaudrate(baud)
         except AttributeError:
@@ -136,16 +138,19 @@ class Uploader(object):
         self._port.flush()
         return self.expect(timeout=timeout)
 
+
     def close(self):
         """restores the nodemcu to default baudrate and then closes the port"""
         try:
-            self.writeln(UART_SETUP.format(baud=Uploader.BAUD))
+            if self.baud != self.start_baud:
+                self.set_baudrate(self.start_baud)
             self._port.flush()
             self.clear_buffers()
         except serial.serialutil.SerialException:
             pass
         log.debug('closing port')
         self._port.close()
+
 
     def prepare(self):
         """
