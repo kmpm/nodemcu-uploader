@@ -17,6 +17,10 @@ __all__ = ['Uploader', 'default_port']
 
 SYSTEM = system()
 
+BLOCK_START='\x01';
+NUL = '\x00';
+ACK = '\x06';
+
 class Uploader(object):
     """Uploader is the class for communicating with the nodemcu and
     that will allow various tasks like uploading files, formating the filesystem etc.
@@ -94,11 +98,12 @@ class Uploader(object):
         while not data.endswith(exp) and time.time() <= end:
             data += self._port.read()
 
+        log.debug('expect returned: `{0}`'.format(data))
         if time.time() > end and not data.endswith(exp) and len(exp) > 0:
             raise Exception('Timeout expecting ' + exp)
         if SYSTEM != 'Windows':
             self._port.timeout = timer
-        log.debug('expect returned: `{0}`'.format(data))
+
         return data
 
     def write(self, output, binary=False):
@@ -165,17 +170,27 @@ class Uploader(object):
         return True
 
     def download_file(self, filename):
-        chunk_size = 256
-        bytes_read = 0
-        data = ""
-        while True:
-            d = self.exchange(DOWNLOAD_FILE.format(filename=filename, bytes_read=bytes_read, chunk_size=chunk_size))
-            cmd, size, tmp_data = d.split('\n', 2)
-            data = data + tmp_data[0:chunk_size]
-            bytes_read = bytes_read + chunk_size
-            if bytes_read > int(size):
-                break
-        data = data[0:int(size)]
+        res = self.exchange('send("{filename}")'.format(filename=filename))
+        if ('unexpected' in res) or ('stdin' in res):
+            log.error('Unexpected error downloading file', res)
+            raise Exception('Unexpected error downloading file')
+
+        #tell device we are ready to receive
+        self.write('C')
+        #we should get a NUL terminated filename to start with
+        sent_filename = self.expect(NUL).strip()
+        log.info('receiveing ' + sent_filename)
+
+        #ACK to start download
+        self.write(ACK, True);
+        buffer = ''
+        data = ''
+        chunk, buffer = self.read_chunk(buffer)
+        #read chunks until we get an empty which is the end
+        while chunk != '':
+            self.write(ACK,True);
+            data = data + chunk
+            chunk, buffer = self.read_chunk(buffer)
         return data
 
     def read_file(self, filename, destination=''):
@@ -227,11 +242,13 @@ class Uploader(object):
         #zero size block
         self.write_chunk('')
 
-        if verify == 'text':
+        if verify == 'raw':
             log.info('Verifying...')
             data = self.download_file(destination)
             if content != data:
                 log.error('Verification failed.')
+            else:
+                log.info('Verification successfull. Contents are identical.')
         elif verify == 'sha1':
             #Calculate SHA1 on remote file. Extract just hash from result
             data = self.exchange('shafile("'+destination+'")').splitlines()[1]
@@ -242,6 +259,12 @@ class Uploader(object):
             log.info('Local SHA1: %s', filehashhex)
             if data != filehashhex:
                 log.error('Verification failed.')
+            else:
+                log.info('Verification successfull. Checksums match')
+
+        elif verify != 'none':
+            raise Exception(verify + ' is not a valid verification method.')
+
 
     def exec_file(self, path):
         filename = os.path.basename(path)
@@ -279,7 +302,7 @@ class Uploader(object):
 
     def write_chunk(self, chunk):
         log.debug('writing %d bytes chunk', len(chunk))
-        data = '\x01' + chr(len(chunk)) + chunk
+        data = BLOCK_START + chr(len(chunk)) + chunk
         if len(chunk) < 128:
             padding = 128 - len(chunk)
             log.debug('pad with %d characters', padding)
@@ -288,6 +311,32 @@ class Uploader(object):
         self.write(data)
         self._port.flush()
         return self.got_ack()
+
+
+    def read_chunk(self, buffer):
+        log.debug('reading chunk')
+        timeout = self._port.timeout
+        if SYSTEM != 'Windows':
+            timer = self._port.timeout
+            # Checking for new data every 100us is fast enough
+            lt = 0.0001
+            if self._port.timeout != lt:
+                self._port.timeout = lt
+
+        end = time.time() + timeout
+
+        while len(buffer) < 130 and time.time() <= end:
+            buffer = buffer + self._port.read()
+
+        if buffer[0] != BLOCK_START or len(buffer) < 130:
+            print 'buffer size:', len(buffer)
+            log.debug('buffer binary: ', ':'.join(x.encode('hex') for x in buffer))
+            raise Exception('Bad blocksize or start byte')
+
+        chunk_size = ord(buffer[1])
+        data = buffer[2:chunk_size+2]
+        buffer = buffer[130:]
+        return (data, buffer)
 
 
     def file_list(self):

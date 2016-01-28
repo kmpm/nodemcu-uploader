@@ -5,14 +5,14 @@
 
 # these functions are needed on the device, otherwise they will be
 # uploaded during prepare
-LUA_FUNCTIONS = ['recv_block', 'recv_name','recv','shafile', 'send_block', 'send_file']
+LUA_FUNCTIONS = ['recv_block', 'recv_name','recv','shafile', 'send_block', 'send_file', 'send']
 
 DOWNLOAD_FILE = "file.open('{filename}') print(file.seek('end', 0)) file.seek('set', {bytes_read}) uart.write(0, file.read({chunk_size}))file.close()"
 
 PRINT_FILE = "file.open('{filename}') print('---{filename}---') print(file.read()) file.close() print('---')"
 
 LIST_FILES = 'for key,value in pairs(file.list()) do print(key,value) end'
-
+#NUL = \000, ACK = \006
 RECV_LUA = \
 r"""
 function recv_block(d)
@@ -39,8 +39,14 @@ function shafile(f) file.open(f, "r") print(crypto.toHex(crypto.hash("sha1",file
 
 SEND_LUA = \
 r"""
-function send_block(d) l = string.len(d) uart.write(0, '\001' + string.char(l) + string.rep(' ', 128 - l)) return l end
-function send_file(f) file.open(f) s=file.seek('end', 0) p=0 while (p<s) do file.seek('set',p) p=p+send_block(file.read(128)) end send_block('') file.close() end
+function send_block(d) l = string.len(d) uart.write(0, '\001' .. string.char(l) .. d .. string.rep('#', 128 - l)) return l end
+function send_file(f) file.open(f) s=file.seek('end', 0) p=0 uart.on('data', 1, function(data)
+if data == '\006' and p<s then file.seek('set',p) p=p+send_block(file.read(128)) else
+send_block('') file.close() uart.on('data') print('interrupted') end end, 0) uart.write(0, f .. '\000')
+end
+function send(f) uart.on('data', 1, function (data)
+    uart.on('data') if data == 'C' then send_file(f) else print('transfer interrupted') end end, 0)
+end
 """
 
 UART_SETUP = 'uart.setup(0,{baud},8,0,1,1)'

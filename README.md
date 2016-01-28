@@ -33,11 +33,8 @@ not work depending on version used. This is a known issue.
 
 
 ### Notes for Windows
-There are some 
-[significant issues with Windows](https://github.com/kmpm/nodemcu-uploader/issues?q=is%3Aissue+is%3Aopen+label%3Aos%3Awindows)
-that might be related to serial port hardware but it can be things like
-complete hang (you have to kill the python.exe process) to random
-errors and/or corrupted file transfers.
+There might be some
+[significant issues with Windows](https://github.com/kmpm/nodemcu-uploader/issues?q=is%3Aissue+is%3Aopen+label%3Aos%3Awindows).
 
 
 Issues
@@ -79,14 +76,14 @@ Uploading a number of files, but saving with a different file name.
 ```
 
 Uploading a number of files and verify successful uploading by downloading the file
-and comparing contents. Might fail because of Issue #33 - 'Upload verification breaks if file has "> " in it'
+and comparing contents.
 
 ```
-./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py --verify=text
+./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py --verify=raw
 ```
 
 Uploading a number of files and verify successful uploading by doing a sha1 checksum.
-__Requires crypto module on the device__
+__Requires crypto module on the device__ and currently files not to big (~1000 bytes)
 
 ```
 ./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py --verify=sha1

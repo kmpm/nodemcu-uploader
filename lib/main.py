@@ -146,7 +146,7 @@ def main_func():
         help='To verify the uploaded data.',
         action='store',
         nargs='?',
-        choices=['none', 'text', 'sha1'],
+        choices=['none', 'raw', 'sha1'],
         default='none'
         )
 
