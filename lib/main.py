@@ -215,6 +215,11 @@ def main_func():
 
     logging.basicConfig(level=default_level, format='%(message)s')
 
+    if args.operation == 'terminal':
+        #uploader can not claim the port
+        terminal(args.port)
+        return
+
     uploader = Uploader(args.port, args.baud, start_baud=args.start_baud)
 
     if args.operation == 'upload':
@@ -240,9 +245,5 @@ def main_func():
     #no uploader related commands after this point
     uploader.close()
 
-    if args.operation == 'terminal':
-        #uploader can not claim the port
-        uploader.close()
-        terminal(args.port)
 
 
