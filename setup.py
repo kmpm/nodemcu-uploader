@@ -7,7 +7,7 @@ exec(open('lib/version.py').read())
 setup(name='nodemcu-uploader',
       version=__version__,
       install_requires=[
-          'pyserial==3.0.1'
+          'pyserial>=2.7'
       ],
       packages=['nodemcu_uploader'],
       package_dir={'nodemcu_uploader': 'lib'},

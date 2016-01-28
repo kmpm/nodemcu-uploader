@@ -4,7 +4,8 @@ nodemcu-uploader.py
 | master | next |
 |--------|------|
 |[![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=master)](https://travis-ci.org/kmpm/nodemcu-uploader) | [![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=next)](https://travis-ci.org/kmpm/nodemcu-uploader) |
-
+Please note that these tests is not complete and it might be the tests
+themselves that are having issues.
 
 A simple tool for uploading files to the filesystem of an
 ESP8266 running NodeMCU as well as some other useful commands.
@@ -26,12 +27,16 @@ Otherwise clone from github and run directly from there
     cd nodemcu-uploader
     python ./nodemcu-uploader.py
 
-Note that pip would install pyserial >=3.0. pyserial 2.7 should work
-but there might be some bugs that could bite you.
+Note that pip would install pyserial >= 2.7.
+The terminal command (using miniterm from pyserial) might
+not work depending on version used. This is a known issue.
 
 
 ### Notes for Windows
-This might work with 64 bit Python but is not tested.
+There are some significant issues with Windows that might
+be related to serial port hardware but it can be things like
+complete hang (you have to kill the python.exe process) to random
+errors and/or corrupted file transfers.
 
 
 Issues
@@ -72,11 +77,20 @@ Uploading a number of files, but saving with a different file name.
 ./nodemcu-uploader.py upload init.lua:new_init.lua README.md:new_README.md [--compile] [--restart]
 ```
 
-Uploading a number of files and verify successful uploading.
+Uploading a number of files and verify successful uploading by downloading the file
+and comparing contents. Might fail because of Issue #33 - 'Upload verification breaks if file has "> " in it'
 
 ```
-./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py -v
+./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py --verify=text
 ```
+
+Uploading a number of files and verify successful uploading by doing a sha1 checksum.
+__Requires crypto module on the device__
+
+```
+./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py --verify=sha1
+```
+
 
 ###Download
 Downloading a number of files.
