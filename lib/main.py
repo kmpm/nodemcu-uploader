@@ -47,7 +47,7 @@ def operation_upload(uploader, sources, verify, do_compile, do_file, do_restart)
                 elif do_file:
                     uploader.file_do(d)
         else:
-            raise Exception('Error preparing nodemcu for reception') 
+            raise Exception('Error preparing nodemcu for reception')
     else:
         raise Exception('You must specify a destination filename for each file you want to upload.')
 
@@ -79,6 +79,9 @@ def operation_file(uploader, cmd, filename=''):
     elif cmd == 'remove':
         for f in filename:
             uploader.file_remove(f)
+    elif cmd == 'print':
+        for f in filename:
+            uploader.file_print(f)
 
 
 
@@ -180,7 +183,7 @@ def main_func():
 
     file_parser.add_argument(
         'cmd',
-        choices=('list', 'do', 'format', 'remove'),
+        choices=('list', 'do', 'format', 'remove', 'print'),
         help="list=list files, do=dofile given path, format=formate file area, remove=remove given path")
 
     file_parser.add_argument('filename', nargs='*', help='path for cmd')

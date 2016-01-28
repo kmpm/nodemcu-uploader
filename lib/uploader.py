@@ -9,7 +9,7 @@ import os
 import serial
 
 from .utils import default_port
-from .luacode import DOWNLOAD_FILE, SAVE_LUA, LUA_FUNCTIONS, LIST_FILES, UART_SETUP
+from .luacode import DOWNLOAD_FILE, SAVE_LUA, LUA_FUNCTIONS, LIST_FILES, UART_SETUP, PRINT_FILE
 
 log = logging.getLogger(__name__)
 
@@ -64,8 +64,8 @@ class Uploader(object):
         except AttributeError:
             #pySerial 2.7
             self._port.baudrate = baud
-    
-    
+
+
     def clear_buffers(self):
         try:
             self._port.reset_input_buffer()
@@ -74,7 +74,7 @@ class Uploader(object):
             #pySerial 2.7
             self._port.flushInput()
             self._port.flushOutput()
-        
+
 
     def expect(self, exp='> ', timeout=TIMEOUT):
         """will wait for exp to be returned from nodemcu or timeout"""
@@ -91,10 +91,10 @@ class Uploader(object):
         data = ''
         while not data.endswith(exp) and time.time() <= end:
             data += self._port.read()
-        
+
         if time.time() > end and not data.endswith(exp) and len(exp) > 0:
             raise Exception('Timeout expecting ' + exp)
-        
+
         self._port.timeout = timer
         log.debug('expect returned: `{0}`'.format(data))
         return data
@@ -143,7 +143,7 @@ class Uploader(object):
         else:
             log.debug('Found all required lua functions, no need to upload them')
             return True
-            
+
         data = SAVE_LUA.format(baud=self._port.baudrate)
         ##change any \r\n to just \n and split on that
         lines = data.replace('\r', '').split('\n')
@@ -225,7 +225,7 @@ class Uploader(object):
         #zero size block
         self.write_chunk('')
 
-        if verify == 'standard':
+        if verify == 'text':
             log.info('Verifying...')
             data = self.download_file(destination)
             if content != data:
@@ -307,6 +307,12 @@ class Uploader(object):
             log.error(res)
         else:
             log.info(res)
+        return res
+
+    def file_print(self, f):
+        log.info('Printing ' + f)
+        res = self.exchange(PRINT_FILE.format(filename=f))
+        log.info(res)
         return res
 
     def node_heap(self):

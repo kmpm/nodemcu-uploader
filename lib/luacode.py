@@ -5,6 +5,8 @@
 
 DOWNLOAD_FILE = "file.open('{filename}') print(file.seek('end', 0)) file.seek('set', {bytes_read}) uart.write(0, file.read({chunk_size}))file.close()"
 
+PRINT_FILE = "file.open('{filename}') print('---{filename}---') print(file.read()) file.close() print('---')"
+
 LIST_FILES = 'for key,value in pairs(file.list()) do print(key,value) end'
 
 SAVE_LUA = \
