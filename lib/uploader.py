@@ -9,7 +9,7 @@ import os
 import serial
 
 from .utils import default_port, system
-from .luacode import DOWNLOAD_FILE, SAVE_LUA, LUA_FUNCTIONS, LIST_FILES, UART_SETUP, PRINT_FILE
+from .luacode import DOWNLOAD_FILE, RECV_LUA, SEND_LUA, LUA_FUNCTIONS, LIST_FILES, UART_SETUP, PRINT_FILE
 
 log = logging.getLogger(__name__)
 
@@ -145,8 +145,8 @@ class Uploader(object):
         else:
             log.info('Preparation already done. Not adding functions again.')
             return True
-
-        data = SAVE_LUA.format(baud=self._port.baudrate)
+        functions = RECV_LUA + '\n' + SEND_LUA
+        data = functions.format(baud=self._port.baudrate)
         ##change any \r\n to just \n and split on that
         lines = data.replace('\r', '').split('\n')
 
@@ -159,8 +159,8 @@ class Uploader(object):
 
             d = self.exchange(line)
             #do some basic test of the result
-            if ('unexpected' in d) or ('stdin' in d) or len(d) > len(SAVE_LUA)+10:
-                log.error('error in save_lua "%s"', d)
+            if ('unexpected' in d) or ('stdin' in d) or len(d) > len(functions)+10:
+                log.error('error when preparing "%s"', d)
                 return False
         return True
 
