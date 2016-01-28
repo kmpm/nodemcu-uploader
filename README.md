@@ -1,5 +1,7 @@
 nodemcu-uploader.py
 ===================
+A simple tool for uploading files to the filesystem of an
+ESP8266 running NodeMCU as well as some other useful commands.
 
 | master | next |
 |--------|------|
@@ -7,11 +9,9 @@ nodemcu-uploader.py
 Please note that these tests is not complete and it might be the tests
 themselves that are having issues.
 
-A simple tool for uploading files to the filesystem of an
-ESP8266 running NodeMCU as well as some other useful commands.
-
-It should work on Linux, Windows, and OS X; and with any type of file
+It should work on Linux, and OS X; and with any type of file
 that fits the filesystem, binary or text.
+For windows see the notes below.
 
 Installation
 -------------
@@ -33,8 +33,9 @@ not work depending on version used. This is a known issue.
 
 
 ### Notes for Windows
-There are some significant issues with Windows that might
-be related to serial port hardware but it can be things like
+There are some 
+[significant issues with Windows](https://github.com/kmpm/nodemcu-uploader/issues?q=is%3Aissue+is%3Aopen+label%3Aos%3Awindows)
+that might be related to serial port hardware but it can be things like
 complete hang (you have to kill the python.exe process) to random
 errors and/or corrupted file transfers.
 
