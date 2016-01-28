@@ -3,6 +3,10 @@
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
 
 
+# these functions are needed on the device, otherwise they will be
+# uploaded during prepare
+LUA_FUNCTIONS = ['recv_block', 'recv_name','recv','shafile']
+
 DOWNLOAD_FILE = "file.open('{filename}') print(file.seek('end', 0)) file.seek('set', {bytes_read}) uart.write(0, file.read({chunk_size}))file.close()"
 
 PRINT_FILE = "file.open('{filename}') print('---{filename}---') print(file.read()) file.close() print('---')"
@@ -32,5 +36,5 @@ function recv_name(d) d = string.gsub(d, '\000', '') file.remove(d) file.open(d,
 function recv() uart.setup(0,{baud},8,0,1,0) uart.on('data', '\000', recv_name, 0) uart.write(0, 'C') end
 function shafile(f) file.open(f, "r") print(crypto.toHex(crypto.hash("sha1",file.read()))) file.close() end
 """
-LUA_FUNCTIONS = ['recv_block', 'recv_name','recv','shafile']
+
 UART_SETUP = 'uart.setup(0,{baud},8,0,1,1)'

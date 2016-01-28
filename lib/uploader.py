@@ -143,7 +143,7 @@ class Uploader(object):
             if d.find('function:') == -1:
                 break
         else:
-            log.debug('Found all required lua functions, no need to upload them')
+            log.info('Preparation already done. Not adding functions again.')
             return True
 
         data = SAVE_LUA.format(baud=self._port.baudrate)
