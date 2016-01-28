@@ -8,13 +8,14 @@ import hashlib
 import os
 import serial
 
-from .utils import default_port
+from .utils import default_port, system
 from .luacode import DOWNLOAD_FILE, SAVE_LUA, LUA_FUNCTIONS, LIST_FILES, UART_SETUP, PRINT_FILE
 
 log = logging.getLogger(__name__)
 
 __all__ = ['Uploader', 'default_port']
 
+SYSTEM = system()
 
 class Uploader(object):
     """Uploader is the class for communicating with the nodemcu and
@@ -78,12 +79,13 @@ class Uploader(object):
 
     def expect(self, exp='> ', timeout=TIMEOUT):
         """will wait for exp to be returned from nodemcu or timeout"""
-        timer = self._port.timeout
+        if SYSTEM != 'Windows':
+            timer = self._port.timeout
 
-        # Checking for new data every 100us is fast enough
-        lt = 0.0001
-        if self._port.timeout != lt:
-            self._port.timeout = lt
+            # Checking for new data every 100us is fast enough
+            lt = 0.0001
+            if self._port.timeout != lt:
+                self._port.timeout = lt
 
         end = time.time() + timeout
 
@@ -94,8 +96,8 @@ class Uploader(object):
 
         if time.time() > end and not data.endswith(exp) and len(exp) > 0:
             raise Exception('Timeout expecting ' + exp)
-
-        self._port.timeout = timer
+        if SYSTEM != 'Windows':
+            self._port.timeout = timer
         log.debug('expect returned: `{0}`'.format(data))
         return data
 
