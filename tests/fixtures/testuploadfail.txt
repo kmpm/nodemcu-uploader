@@ -1,0 +1,6 @@
+    if (anything == false and test > 10) then print ("This line should be fine") end
+
+-- Doesn't matter what is here, just needs to be enough for another block after the > sign
+-- Lorem Ipsum dolor sit amet consecutor adlipsing. Lorem Ipsum dolor sit amet consecutor adlipsing.
+-- Lorem Ipsum dolor sit amet consecutor adlipsing.Lorem Ipsum dolor sit amet consecutor adlipsing.
+-- Lorem Ipsum dolor sit amet consecutor adlipsing.Lorem Ipsum dolor sit amet consecutor adlipsing.
