@@ -59,6 +59,7 @@ Usage (part of it)
 * --baud are set at a default of 9600
 * --port is by default __/dev/ttyUSB0__,
   __/dev/tty.SLAB_USBtoUART__ if on Mac and __COM1__ on Windows
+* the environment variable __SERIALPORT__ will override any default port
 
 ###Upload
 Uploading a number of files.
