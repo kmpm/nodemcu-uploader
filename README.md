@@ -3,15 +3,16 @@ nodemcu-uploader.py
 A simple tool for uploading files to the filesystem of an
 ESP8266 running NodeMCU as well as some other useful commands.
 
+It should work on Linux, and OS X; and with any type of file
+that fits the filesystem, binary or text.
+
 | master | next |
 |--------|------|
 |[![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=master)](https://travis-ci.org/kmpm/nodemcu-uploader) | [![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=next)](https://travis-ci.org/kmpm/nodemcu-uploader) |
 Please note that these tests is not complete and it might be the tests
 themselves that are having issues.
 
-It should work on Linux, and OS X; and with any type of file
-that fits the filesystem, binary or text.
-For windows see the notes below.
+
 
 Installation
 -------------
@@ -36,124 +37,52 @@ not work depending on version used. This is a known issue.
 There might be some
 [significant issues with Windows](https://github.com/kmpm/nodemcu-uploader/issues?q=is%3Aissue+is%3Aopen+label%3Aos%3Awindows).
 
+### Notes for OS X
+To solve "ImportError: No module named serial", install the pyserial module:
+```sh
+python easy_install pyserial
+```
+
+Usage
+-----
+See doc/USAGE.md
+
 
 Issues
 -------
 Create a issue in github, https://github.com/kmpm/nodemcu-uploader/issues
 
 
-Disclaimer
------------
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Technical Details
+-----------------
+This uses *almost* an implementation of xmodem protocol for the up-/download part.
+This is done by ferst preparing the device by first creating a set of helper
+functions using the ordinary terminal mode.
+These function utilize the built in uart module for the actual transfer and
+cuts up the transfers to a set of manageable blocks that are reassembled
+in the receiving end.
 
-
-Usage (part of it)
-------------------
-* --start_baud set at a default of 9600 (the speed of the nodemcu at boot)
-* --baud are set at a default of 115200
-* --port is by default __/dev/ttyUSB0__,
-  __/dev/tty.SLAB_USBtoUART__ if on Mac and __COM1__ on Windows
-* the environment variable __SERIALPORT__ will override any default port
-
-Since v0.2.1 the program works with 2 speeds. It connects at a default
-(--start_baud) of 9600 baud which is what the default firmware uses. Immediately after
-first established communication it changes to a higher (--baud) speed which defaults
-to 115200. This allows all communication to happen much faster without having to
-recompile the firmware or do any manual changes to the speed.
-When done and before it closes the port it changes the speed back to normal.
-
-###Upload
-Uploading a number of files.
-Supports multiple files. If you want an alternate destination name, just
-add a colon ":" and the new destination filename.
-
-```
-./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py [--compile] [--restart]
-```
-
-Uploading a number of files, but saving with a different file name.
-
-```
-./nodemcu-uploader.py upload init.lua:new_init.lua README.md:new_README.md [--compile] [--restart]
-```
-
-Uploading a number of files and verify successful uploading by downloading the file
-and comparing contents.
-
-```
-./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py --verify=raw
-```
-
-Uploading a number of files and verify successful uploading by doing a sha1 checksum.
-__Requires crypto module on the device__ and currently files not to big (~1000 bytes)
-
-```
-./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py --verify=sha1
-```
-
-
-###Download
-Downloading a number of files.
-Supports multiple files. If you want an alternate destination name, just
-add a colon ":" and the new destination filename.
-```
-./nodemcu-uploader.py download init.lua README.md nodemcu-uploader.py
-```
-
-Downloading a number of files, but saving with a different file name.
-
-```
-./nodemcu-uploader.py download init.lua:new_init.lua README.md:new_README.md
-```
-
-###List files
-```
-./nodemcu-uploader.py --port com1 file list
-```
-
-###Format filesystem
-```
-./nodemcu-uploader.py file format
-```
-
-###Remove specific files
-```
-./nodemcu-uploader.py file remove foo.lua
-```
-
-OS X Python serial module
-----
-To solve "ImportError: No module named serial", install the pyserial module:
-```sh
-python easy_install pyserial
-```
-
-Todo
-----
-* Speed up the initial step of uploading the script to NodeMCU
-* Implement a change of baudrate for the actual transfer and go back when done
-* Documentation
-* --help should show full usage
-
-Details
--------
-This is *almost* an implementation of xmodem protocol for the upload part.
-
+### Upload
 1. Client calls the function recv()
 2. NodeMCU disables echo and send a 'C' to tell that it's ready to receive data
 3. Client sends a filename terminated with 0x00
 4. NodeMCU sends ACK
 5. Client send block of data according to the definition.
-6. Client sends ACK
+6. NodeMCU sends ACK
 7. Step 5 and 6 are repeated until NodeMCU receives a block with 0 as size.
 8. NodeMCU enables normal terminal again with echo
+
+### Download
+1. Client calls the function send(<filename>).
+2. NodeMCU disables echo and waits for start.
+2. Client send a 'C' to tell that it's ready to receive data
+3. NodeMCU sends a filename terminated with 0x00
+4. Client sends ACK
+5. NodeMCU send block of data according to the definition.
+6. Client sends ACK
+7. Step 5 and 6 are repeated until client receives a block with 0 as size.
+8. NodeMCU enables normal terminal again with echo.
 
 
 
@@ -172,3 +101,17 @@ The block size was decided for...
 2. A fixed size allow the use of the uart.on('data') event very easy.
 3. 130 bytes would fit in the receive buffer buffer.
 4. It would not waste that much traffic if the total size uploaded was not a multiple of the allowed datasize.
+
+
+
+Disclaimer
+-----------
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
