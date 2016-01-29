@@ -57,7 +57,9 @@ Create a issue in github, https://github.com/kmpm/nodemcu-uploader/issues
 Technical Details
 -----------------
 This uses *almost* an implementation of xmodem protocol for the up-/download part.
-This is done by ferst preparing the device by first creating a set of helper
+The main missing part is checksum and retransmission.
+
+This is made possible by first preparing the device by creating a set of helper
 functions using the ordinary terminal mode.
 These function utilize the built in uart module for the actual transfer and
 cuts up the transfers to a set of manageable blocks that are reassembled
