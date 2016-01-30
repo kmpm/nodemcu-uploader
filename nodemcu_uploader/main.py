@@ -5,6 +5,7 @@
 import argparse
 import logging
 import os
+import glob
 from .uploader import Uploader
 from .term import terminal
 from serial import VERSION as serialversion
@@ -20,19 +21,25 @@ def destination_from_source(sources):
     and returns an array of destinations.
     """
     destinations = []
+    newsources = []
     for i in range(0, len(sources)):
         sd = sources[i].split(':')
         if len(sd) == 2:
             destinations.append(sd[1])
-            sources[i] = sd[0]
+            newsources[i] = sd[0]
         else:
-            destinations.append(sd[0])
-    return destinations
+            listing = glob.glob(sd[0])
+            for filename in listing:
+                newsources.append(filename)
+                #always use forward slash at destination
+                destinations.append(filename.replace('\\', '/'))
+            
+    return [newsources, destinations]
 
 
 def operation_upload(uploader, sources, verify, do_compile, do_file, do_restart):
     """The upload operation"""
-    destinations = destination_from_source(sources)
+    sources, destinations = destination_from_source(sources)
     if len(destinations) == len(sources):
         if uploader.prepare():
             for f, d in zip(sources, destinations):
