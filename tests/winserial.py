@@ -3,7 +3,7 @@
 import unittest
 import os
 import serial
-from lib.utils import default_port
+from nodemcu_uploader.utils import default_port
 import time
 
 SERIALPORT = os.environ.get('SERIALPORT', default_port())

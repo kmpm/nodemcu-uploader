@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
 import unittest
-from lib.utils import default_port
-from lib import __version__
+from nodemcu_uploader.utils import default_port
+from nodemcu_uploader import __version__
 import os
 
 class MiscTestCase(unittest.TestCase):
