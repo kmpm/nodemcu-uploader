@@ -2,7 +2,7 @@
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
 from setuptools import setup
 
-exec(open('lib/version.py').read())
+exec(open('nodemcu_uploader/version.py').read())
 
 setup(name='nodemcu-uploader',
       version=__version__,
@@ -10,7 +10,7 @@ setup(name='nodemcu-uploader',
           'pyserial>=2.7'
       ],
       packages=['nodemcu_uploader'],
-      package_dir={'nodemcu_uploader': 'lib'},
+      #package_dir={'nodemcu_uploader': 'lib'},
       url='https://github.com/kmpm/nodemcu-uploader',
       author='kmpm',
       author_email='peter@birchroad.net',
