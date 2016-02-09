@@ -89,8 +89,9 @@ class Uploader(object):
             self._port.flushOutput()
 
 
-    def expect(self, exp='> ', timeout=TIMEOUT):
+    def expect(self, exp='> ', timeout=None):
         """will wait for exp to be returned from nodemcu or timeout"""
+        timeout = timeout or self.TIMEOUT
         #do NOT set timeout on Windows
         if SYSTEM != 'Windows':
             timer = self._port.timeout
@@ -133,10 +134,10 @@ class Uploader(object):
         """write, with linefeed"""
         self.write(output + '\n')
 
-    def exchange(self, output, timeout=TIMEOUT):
+    def exchange(self, output, timeout=None):
         self.writeln(output)
         self._port.flush()
-        return self.expect(timeout=timeout)
+        return self.expect(timeout=timeout or self.TIMEOUT)
 
 
     def close(self):
