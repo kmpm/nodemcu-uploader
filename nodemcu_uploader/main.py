@@ -33,7 +33,7 @@ def destination_from_source(sources):
                 newsources.append(filename)
                 #always use forward slash at destination
                 destinations.append(filename.replace('\\', '/'))
-            
+
     return [newsources, destinations]
 
 
@@ -235,10 +235,10 @@ def main_func():
 
     # let uploader user the default (short) timeout for establishing connection
     uploader = Uploader(args.port, args.baud, start_baud=args.start_baud)
-    
+
     # and reset the timeout (if we have the uploader&timeout)
     if args.timeout:
-        uploader.TIMEOUT = args.timeout
+        uploader.set_timeout(args.timeout)
 
     if args.operation == 'upload':
         operation_upload(uploader, args.filename, args.verify, args.compile, args.dofile,
@@ -262,6 +262,3 @@ def main_func():
             uploader.node_restart()
     #no uploader related commands after this point
     uploader.close()
-
-
-
