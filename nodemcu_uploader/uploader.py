@@ -8,16 +8,20 @@ import hashlib
 import os
 import serial
 
-from .exceptions import CommunicationTimeout, DeviceNotFoundException
-from .exceptions import BadResponseException
+
+from .exceptions import CommunicationTimeout, DeviceNotFoundException, \
+    BadResponseException
 from .utils import default_port, system
-from .luacode import LUA_FUNCTIONS, DOWNLOAD_FILE, RECV_LUA, SEND_LUA, LIST_FILES, UART_SETUP, PRINT_FILE
+from .luacode import DOWNLOAD_FILE, RECV_LUA, SEND_LUA, LUA_FUNCTIONS, \
+    LIST_FILES, UART_SETUP, PRINT_FILE
+
 
 log = logging.getLogger(__name__) # pylint: disable=C0103
 
 __all__ = ['Uploader', 'default_port']
 
 SYSTEM = system()
+
 
 MINIMAL_TIMEOUT = 0.0001
 BLOCK_START = '\x01'
@@ -33,12 +37,13 @@ class Uploader(object):
     TIMEOUT = 5
     PORT = default_port()
 
-    def __init__(self, port=PORT, baud=BAUD, start_baud=START_BAUD):
+    def __init__(self, port=PORT, baud=BAUD, start_baud=START_BAUD, timeout=TIMEOUT):
+        self.set_timeout(timeout)
         log.info('opening port %s with %s baud', port, start_baud)
         if port == 'loop://':
-            self._port = serial.serial_for_url(port, start_baud, timeout=Uploader.TIMEOUT)
+            self._port = serial.serial_for_url(port, start_baud, timeout=timeout)
         else:
-            self._port = serial.Serial(port, start_baud, timeout=Uploader.TIMEOUT)
+            self._port = serial.Serial(port, start_baud, timeout=timeout)
 
         self.start_baud = start_baud
         self.baud = baud
@@ -82,6 +87,12 @@ class Uploader(object):
             self._port.baudrate = baud
 
 
+    def set_timeout(self, timeout):
+        """Set the timeout for the communication with the device."""
+        timeout = int(timeout) # will raise on Error
+        self._timeout = timeout == 0 and 999999 or timeout
+
+
     def __clear_buffers(self):
         """Clears the input and output buffers"""
         try:
@@ -93,9 +104,10 @@ class Uploader(object):
             self._port.flushOutput()
 
 
-    def __expect(self, exp='> ', timeout=TIMEOUT):
+    def __expect(self, exp='> ', timeout=None):
         """will wait for exp to be returned from nodemcu or timeout"""
-        timer = self._port.timeout
+        timeout_before = self._port.timeout
+        timeout = timeout or self._timeout
         #do NOT set timeout on Windows
         if SYSTEM != 'Windows':
             # Checking for new data every 100us is fast enough
@@ -117,7 +129,7 @@ class Uploader(object):
             raise BadResponseException('Bad response.', exp, data)
 
         if SYSTEM != 'Windows':
-            self._port.timeout = timer
+            self._port.timeout = timeout_before
 
         return data
 
@@ -135,11 +147,12 @@ class Uploader(object):
         """write, with linefeed"""
         self.__write(output + '\n')
 
-    def __exchange(self, output, timeout=TIMEOUT):
+
+    def __exchange(self, output, timeout=None):
         """Write output to the port and wait for response"""
         self.__writeln(output)
         self._port.flush()
-        return self.__expect(timeout=timeout)
+        return self.expect(timeout=timeout or self._timeout)
 
 
     def close(self):
@@ -204,6 +217,7 @@ class Uploader(object):
         #ACK to start download
         self.__write(ACK, True)
         buf = ''
+
         data = ''
         chunk, buf = self.__read_chunk(buf)
         #read chunks until we get an empty which is the end
@@ -342,13 +356,13 @@ class Uploader(object):
     def __read_chunk(self, buf):
         """Read a chunk of data"""
         log.debug('reading chunk')
-        timeout = self._port.timeout
+        timeout_before = self._port.timeout
         if SYSTEM != 'Windows':
             # Checking for new data every 100us is fast enough
             if self._port.timeout != MINIMAL_TIMEOUT:
                 self._port.timeout = MINIMAL_TIMEOUT
 
-        end = time.time() + timeout
+        end = time.time() + timeout_before
 
         while len(buf) < 130 and time.time() <= end:
             buf = buf + self._port.read()
@@ -359,7 +373,7 @@ class Uploader(object):
             raise Exception('Bad blocksize or start byte')
 
         if SYSTEM != 'Windows':
-            self._port.timeout = timeout
+            self._port.timeout = timeout_before
 
         chunk_size = ord(buf[1])
         data = buf[2:chunk_size+2]
@@ -427,4 +441,3 @@ class Uploader(object):
         res = self.__exchange(cmd)
         log.info(res)
         return res
-

@@ -29,5 +29,6 @@ setup(name='nodemcu-uploader',
           'console_scripts': [
               'nodemcu-uploader=nodemcu_uploader.main:main_func'
           ]
-      }
+      },
+      zip_safe=False
      )
