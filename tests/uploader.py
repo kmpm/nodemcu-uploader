@@ -14,10 +14,11 @@ def is_real():
         return False
     return str(SERIALPORT) != str(LOOPPORT)
 
-class UploaderFakeTestCase(unittest.TestCase):
-    def test_init(self):
-        uploader = Uploader(SERIALPORT)
-        uploader.close()
+# class UploaderFakeTestCase(unittest.TestCase):
+#     def test_init(self):
+#         print "SP", SERIALPORT
+#         uploader = Uploader(SERIALPORT)
+#         uploader.close()
 
 @unittest.skipUnless(is_real(), 'Needs a configured SERIALPORT')
 class UploaderTestCase(unittest.TestCase):
