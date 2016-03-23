@@ -23,7 +23,7 @@ __all__ = ['Uploader', 'default_port']
 SYSTEM = system()
 
 
-MINIMAL_TIMEOUT = 0.0001
+MINIMAL_TIMEOUT = 0.001
 BLOCK_START = '\x01'
 NUL = '\x00'
 ACK = '\x06'
