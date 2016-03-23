@@ -224,7 +224,7 @@ def main_func():
 
     if args.operation == 'terminal':
         #uploader can not claim the port
-        terminal(args.port)
+        terminal(args.port, str(args.start_baud))
         return
 
     uploader = Uploader(args.port, args.baud, start_baud=args.start_baud)
