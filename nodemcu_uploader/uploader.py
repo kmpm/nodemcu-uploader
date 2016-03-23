@@ -12,7 +12,7 @@ import serial
 from .exceptions import CommunicationTimeout, DeviceNotFoundException, \
     BadResponseException
 from .utils import default_port, system
-from .luacode import DOWNLOAD_FILE, RECV_LUA, SEND_LUA, LUA_FUNCTIONS, \
+from .luacode import RECV_LUA, SEND_LUA, LUA_FUNCTIONS, \
     LIST_FILES, UART_SETUP, PRINT_FILE
 
 
@@ -38,6 +38,7 @@ class Uploader(object):
     PORT = default_port()
 
     def __init__(self, port=PORT, baud=BAUD, start_baud=START_BAUD, timeout=TIMEOUT):
+        self._timeout = Uploader.TIMEOUT
         self.set_timeout(timeout)
         log.info('opening port %s with %s baud', port, start_baud)
         if port == 'loop://':
@@ -152,7 +153,7 @@ class Uploader(object):
         """Write output to the port and wait for response"""
         self.__writeln(output)
         self._port.flush()
-        return self.expect(timeout=timeout or self._timeout)
+        return self.__expect(timeout=timeout or self._timeout)
 
 
     def close(self):
@@ -228,6 +229,7 @@ class Uploader(object):
         return data
 
     def read_file(self, filename, destination=''):
+        """reading data from device into local file"""
         if not destination:
             destination = filename
         log.info('Transfering %s to %s', filename, destination)
@@ -330,8 +332,8 @@ class Uploader(object):
 
 
     def write_lines(self, data):
+        """write lines, one by one, separated by \n to device"""
         lines = data.replace('\r', '').split('\n')
-
         for line in lines:
             self.__exchange(line)
 

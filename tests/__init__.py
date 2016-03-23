@@ -10,10 +10,10 @@ def full_suite():
     logging.basicConfig(filename='test-debug.log', level=logging.INFO, format='%(message)s')
 
     from .misc import MiscTestCase
-    from .uploader import UploaderTestCase
+    from . import uploader
     # from .serializer import ResourceTestCase as SerializerTestCase
     # from .utils import UtilsTestCase
 
     miscsuite = unittest.TestLoader().loadTestsFromTestCase(MiscTestCase)
-    uploadersuite = unittest.TestLoader().loadTestsFromTestCase(UploaderTestCase)
+    uploadersuite = unittest.TestLoader().loadTestsFromModule(uploader)
     return unittest.TestSuite([miscsuite, uploadersuite])
