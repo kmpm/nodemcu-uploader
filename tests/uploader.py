@@ -47,3 +47,15 @@ class UploaderTestCase(unittest.TestCase):
         self.uploader.prepare()
         self.uploader.write_file('tests/fixtures/testuploadfail.txt', verify='raw')
 
+
+    def test_file_list(self):
+        lst = self.uploader.file_list()
+        self.assertIsInstance(lst, type([]))
+        self.assertGreaterEqual(len(lst), 1)
+        self.assertLess(len(lst), 50)
+
+
+    def test_node_heap(self):
+        size = self.uploader.node_heap()
+        self.assertGreater(size, 20000)
+        self.assertLess(size, 60000)

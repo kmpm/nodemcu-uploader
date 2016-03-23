@@ -10,7 +10,7 @@ import serial
 
 
 from .exceptions import CommunicationTimeout, DeviceNotFoundException, \
-    BadResponseException
+    BadResponseException, VerificationError, NoAckException
 from .utils import default_port, system
 from .luacode import RECV_LUA, SEND_LUA, LUA_FUNCTIONS, \
     LIST_FILES, UART_SETUP, PRINT_FILE
@@ -249,12 +249,13 @@ class Uploader(object):
         res = self.__expect('C> ')
         if not res.endswith('C> '):
             log.error('Error waiting for esp "%s"', res)
-            return
+            raise CommunicationTimeout('Error waiting for device to start receiving', res)
+
         log.debug('sending destination filename "%s"', destination)
         self.__write(destination + '\x00', True)
         if not self.__got_ack():
             log.error('did not ack destination filename')
-            return
+            raise NoAckException('Device did not ACK destination filename')
 
         fil = open(path, 'rb')
         content = fil.read()
@@ -272,19 +273,29 @@ class Uploader(object):
             if not self.__write_chunk(data):
                 resp = self.__expect()
                 log.error('Bad chunk response "%s" %s', resp, ':'.join(x.encode('hex') for x in resp))
-                return
+                raise BadResponseException('Bad chunk response', ACK, resp)
 
             pos += chunk_size
 
         log.debug('sending zero block')
         #zero size block
         self.__write_chunk('')
+        if verify != 'none':
+            self.verify_file(path, destination, verify)
 
+    def verify_file(self, path, destination, verify='none'):
+        """Tries to verify if path has same checksum as destination.
+            Valid options for verify is 'raw', 'sha1' or 'none'
+        """
+        fil = open(path, 'rb')
+        content = fil.read()
+        fil.close()
         if verify == 'raw':
             log.info('Verifying...')
             data = self.download_file(destination)
             if content != data:
-                log.error('Verification failed.')
+                log.error('Raw verification failed.')
+                raise VerificationError('Verification failed.')
             else:
                 log.info('Verification successfull. Contents are identical.')
         elif verify == 'sha1':
@@ -296,12 +307,14 @@ class Uploader(object):
             filehashhex = hashlib.sha1(content.encode()).hexdigest()
             log.info('Local SHA1: %s', filehashhex)
             if data != filehashhex:
-                log.error('Verification failed.')
+                log.error('SHA1 verification failed.')
+                raise VerificationError('SHA1 Verification failed.')
             else:
                 log.info('Verification successfull. Checksums match')
 
         elif verify != 'none':
             raise Exception(verify + ' is not a valid verification method.')
+
 
 
     def exec_file(self, path):
@@ -388,7 +401,13 @@ class Uploader(object):
         log.info('Listing files')
         res = self.__exchange(LIST_FILES)
         log.info(res)
-        return res
+        res = res.split('\r\n')
+        #skip first and last lines
+        res = res[1:-1]
+        files = []
+        for line in res:
+            files.append(line.split('\t'))
+        return files
 
     def file_do(self, filename):
         """Execute a file on the device using 'do'"""
@@ -419,7 +438,7 @@ class Uploader(object):
         log.info('Heap')
         res = self.__exchange('print(node.heap())')
         log.info(res)
-        return res
+        return int(res.split('\r\n')[1])
 
     def node_restart(self):
         """Restarts device"""

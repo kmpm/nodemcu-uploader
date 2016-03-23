@@ -18,6 +18,11 @@ class BadResponseException(Exception):
         self.expected = expected
         self.actual = actual
 
+class NoAckException(Exception):
+    pass
 
 class DeviceNotFoundException(Exception):
+    pass
+
+class VerificationError(Exception):
     pass

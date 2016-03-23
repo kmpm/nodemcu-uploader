@@ -7,6 +7,7 @@ max-line-length=120
 
 [DESIGN]
 max-args=6
+max-statements=70
 
 [MESSAGES CONTROL]
 disable=I0011
