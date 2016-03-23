@@ -1,6 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
+
+"""This module is the cli for the Uploader class"""
+
 
 import argparse
 import logging
@@ -10,7 +12,7 @@ from .uploader import Uploader
 from .term import terminal
 from serial import VERSION as serialversion
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__) # pylint: disable=C0103
 from .version import __version__
 
 def destination_from_source(sources):
@@ -23,17 +25,17 @@ def destination_from_source(sources):
     destinations = []
     newsources = []
     for i in range(0, len(sources)):
-        sd = sources[i].split(':')
-        if len(sd) == 2:
-            destinations.append(sd[1])
-            newsources[i] = sd[0]
+        srcdst = sources[i].split(':')
+        if len(srcdst) == 2:
+            destinations.append(srcdst[1])
+            newsources[i] = srcdst[0]
         else:
-            listing = glob.glob(sd[0])
+            listing = glob.glob(srcdst[0])
             for filename in listing:
                 newsources.append(filename)
                 #always use forward slash at destination
                 destinations.append(filename.replace('\\', '/'))
-            
+
     return [newsources, destinations]
 
 
@@ -42,17 +44,18 @@ def operation_upload(uploader, sources, verify, do_compile, do_file, do_restart)
     sources, destinations = destination_from_source(sources)
     if len(destinations) == len(sources):
         if uploader.prepare():
-            for f, d in zip(sources, destinations):
+            for filename, dst in zip(sources, destinations):
                 if do_compile:
-                    uploader.file_remove(os.path.splitext(d)[0]+'.lc')
-                uploader.write_file(f, d, verify)
-                if do_compile and d != 'init.lua':
-                    uploader.file_compile(d)
-                    uploader.file_remove(d)
+                    uploader.file_remove(os.path.splitext(dst)[0]+'.lc')
+                uploader.write_file(filename, dst, verify)
+                #init.lua is not allowed to be compiled
+                if do_compile and dst != 'init.lua':
+                    uploader.file_compile(dst)
+                    uploader.file_remove(dst)
                     if do_file:
-                        uploader.file_do(os.path.splitext(d)[0]+'.lc')
+                        uploader.file_do(os.path.splitext(dst)[0]+'.lc')
                 elif do_file:
-                    uploader.file_do(d)
+                    uploader.file_do(dst)
         else:
             raise Exception('Error preparing nodemcu for reception')
     else:
@@ -67,8 +70,8 @@ def operation_download(uploader, sources):
     """The download operation"""
     destinations = destination_from_source(sources)
     if len(destinations) == len(sources):
-        for f, d in zip(sources, destinations):
-            uploader.read_file(f, d)
+        for filename, dst in zip(sources, destinations):
+            uploader.read_file(filename, dst)
     else:
         raise Exception('You must specify a destination filename for each file you want to download.')
     log.info('All done!')
@@ -79,16 +82,16 @@ def operation_file(uploader, cmd, filename=''):
     if cmd == 'list':
         uploader.file_list()
     if cmd == 'do':
-        for f in filename:
-            uploader.file_do(f)
+        for path in filename:
+            uploader.file_do(path)
     elif cmd == 'format':
         uploader.file_format()
     elif cmd == 'remove':
-        for f in filename:
-            uploader.file_remove(f)
+        for path in filename:
+            uploader.file_remove(path)
     elif cmd == 'print':
-        for f in filename:
-            uploader.file_print(f)
+        for path in filename:
+            uploader.file_print(path)
 
 
 
@@ -98,6 +101,7 @@ def arg_auto_int(value):
 
 
 def main_func():
+    """Main function for cli"""
     parser = argparse.ArgumentParser(
         description='NodeMCU Lua file uploader',
         prog='nodemcu-uploader'
@@ -187,7 +191,9 @@ def main_func():
         'download',
         help='Path to one or more files to be downloaded. Destination name will be the same as the file name.')
 
-    download_parser.add_argument('filename', nargs='+', help='Lua file to download. Use colon to give alternate destination.')
+    download_parser.add_argument('filename',
+        nargs='+',
+        help='Lua file to download. Use colon to give alternate destination.')
 
 
     file_parser = subparsers.add_parser(
@@ -207,7 +213,7 @@ def main_func():
 
     node_parse.add_argument('ncmd', choices=('heap', 'restart'), help="heap=print heap memory, restart=restart nodemcu")
 
-    terminal_parser = subparsers.add_parser(
+    subparsers.add_parser(
         'terminal',
         help='Run pySerials miniterm'
     )
@@ -238,8 +244,8 @@ def main_func():
 
     elif args.operation == 'exec':
         sources = args.filename
-        for f in sources:
-            uploader.exec_file(f)
+        for path in sources:
+            uploader.exec_file(path)
 
     elif args.operation == 'file':
         operation_file(uploader, args.cmd, args.filename)

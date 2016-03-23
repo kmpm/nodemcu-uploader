@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
+#pylint: disable=C0111
+
+"""Various custom exceptions"""
 
 class CommunicationTimeout(Exception):
-    def __init__(self, message, buffer):
+    def __init__(self, message, buf):
         super(CommunicationTimeout, self).__init__(message)
-        self.buffer = buffer
+        self.buf = buf
 
 
 class BadResponseException(Exception):

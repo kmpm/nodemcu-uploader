@@ -9,7 +9,7 @@ import time
 SERIALPORT = os.environ.get('SERIALPORT', default_port())
 
 def expect(port, timeout, exp='> '):
-    timer = port.timeout
+    timeout = port.timeout
     # lt = 0.0001
     # if port.timeout != lt:
     #     port.timeout = lt
@@ -19,7 +19,7 @@ def expect(port, timeout, exp='> '):
     while not data.endswith(exp) and time.time() <= end:
         data += port.read()
 
-    # port.timeout = timer
+    # port.timeout = timeout
 
     return data
 

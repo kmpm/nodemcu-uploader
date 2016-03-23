@@ -1,0 +1,16 @@
+[MASTER]
+persistent=yes
+
+[FORMAT]
+# Maximum number of characters on a single line.
+max-line-length=120
+
+[DESIGN]
+max-args=6
+
+[MESSAGES CONTROL]
+disable=I0011
+
+[REPORTS]
+msg-template={path}:{line}: [{msg_id}({symbol}), {obj}] {msg}
+include-ids=yes

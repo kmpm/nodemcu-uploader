@@ -1,11 +1,12 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""This module contains all the LUA code that needs to be on the device
+to perform whats needed. They will be uploaded if they doesn't exist"""
+
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
+# pylint: disable=C0301
 
 
-# these functions are needed on the device, otherwise they will be
-# uploaded during prepare
-LUA_FUNCTIONS = ['recv_block', 'recv_name','recv','shafile', 'send_block', 'send_file', 'send']
+LUA_FUNCTIONS = ['recv_block', 'recv_name', 'recv', 'shafile', 'send_block', 'send_file', 'send']
 
 DOWNLOAD_FILE = "file.open('{filename}') print(file.seek('end', 0)) file.seek('set', {bytes_read}) uart.write(0, file.read({chunk_size}))file.close()"
 

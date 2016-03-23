@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
-from lib import main
+"""makes it easier to run nodemcu-uploader from command line"""
+from nodemcu_uploader import main
 
 
 if __name__ == '__main__':

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
+"""Setup for nodemcu-uploader"""
+
 from setuptools import setup
 
-exec(open('nodemcu_uploader/version.py').read())
+exec(open('nodemcu_uploader/version.py').read()) #pylint: disable=W0122
 
 setup(name='nodemcu-uploader',
-      version=__version__,
+      version=__version__, #pylint: disable=E0602
       install_requires=[
           'pyserial>=2.7'
       ],
@@ -22,7 +24,7 @@ setup(name='nodemcu-uploader',
           'Programming Language :: Python :: 2.7'
       ],
       license='MIT',
-      test_suite = "tests.get_tests",
+      test_suite="tests.get_tests",
       entry_points={
           'console_scripts': [
               'nodemcu-uploader=nodemcu_uploader.main:main_func'

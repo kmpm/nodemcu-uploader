@@ -1,6 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
+"""Main functionality for nodemcu-uploader"""
 
 import time
 import logging
@@ -8,19 +8,21 @@ import hashlib
 import os
 import serial
 
-from .exceptions import CommunicationTimeout, DeviceNotFoundException, BadResponseException
+from .exceptions import CommunicationTimeout, DeviceNotFoundException
+from .exceptions import BadResponseException
 from .utils import default_port, system
-from .luacode import DOWNLOAD_FILE, RECV_LUA, SEND_LUA, LUA_FUNCTIONS, LIST_FILES, UART_SETUP, PRINT_FILE
+from .luacode import LUA_FUNCTIONS, DOWNLOAD_FILE, RECV_LUA, SEND_LUA, LIST_FILES, UART_SETUP, PRINT_FILE
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__) # pylint: disable=C0103
 
 __all__ = ['Uploader', 'default_port']
 
 SYSTEM = system()
 
-BLOCK_START='\x01';
-NUL = '\x00';
-ACK = '\x06';
+MINIMAL_TIMEOUT = 0.0001
+BLOCK_START = '\x01'
+NUL = '\x00'
+ACK = '\x06'
 
 class Uploader(object):
     """Uploader is the class for communicating with the nodemcu and
@@ -46,30 +48,31 @@ class Uploader(object):
         self._port.setRTS(False)
         self._port.setDTR(False)
 
-        def sync():
-            # Get in sync with LUA (this assumes that NodeMCU gets reset by the previous two lines)
-            log.debug('getting in sync with LUA');
-            self.clear_buffers()
+        def __sync():
+            """Get in sync with LUA (this assumes that NodeMCU gets reset by the previous two lines)"""
+            log.debug('getting in sync with LUA')
+            self.__clear_buffers()
             try:
-                self.exchange(';') # Get a defined state
-                self.writeln('print("%sync%");')
-                self.expect('%sync%\r\n> ')
+                self.__exchange(';') # Get a defined state
+                self.__writeln('print("%sync%");')
+                self.__expect('%sync%\r\n> ')
             except CommunicationTimeout:
                 raise DeviceNotFoundException('Device not found or wrong port')
 
-        sync()
+        __sync()
 
         if baud != start_baud:
-            self.set_baudrate(baud)
+            self.__set_baudrate(baud)
 
             # Get in sync again
-            sync()
+            __sync()
 
         self.line_number = 0
 
-    def set_baudrate(self, baud):
+    def __set_baudrate(self, baud):
+        """setting baudrate if supported"""
         log.info('Changing communication to %s baud', baud)
-        self.writeln(UART_SETUP.format(baud=baud))
+        self.__writeln(UART_SETUP.format(baud=baud))
         # Wait for the string to be sent before switching baud
         time.sleep(0.1)
         try:
@@ -79,7 +82,8 @@ class Uploader(object):
             self._port.baudrate = baud
 
 
-    def clear_buffers(self):
+    def __clear_buffers(self):
+        """Clears the input and output buffers"""
         try:
             self._port.reset_input_buffer()
             self._port.reset_output_buffer()
@@ -89,16 +93,14 @@ class Uploader(object):
             self._port.flushOutput()
 
 
-    def expect(self, exp='> ', timeout=TIMEOUT):
+    def __expect(self, exp='> ', timeout=TIMEOUT):
         """will wait for exp to be returned from nodemcu or timeout"""
+        timer = self._port.timeout
         #do NOT set timeout on Windows
         if SYSTEM != 'Windows':
-            timer = self._port.timeout
-
             # Checking for new data every 100us is fast enough
-            lt = 0.0001
-            if self._port.timeout != lt:
-                self._port.timeout = lt
+            if self._port.timeout != MINIMAL_TIMEOUT:
+                self._port.timeout = MINIMAL_TIMEOUT
 
         end = time.time() + timeout
 
@@ -119,7 +121,7 @@ class Uploader(object):
 
         return data
 
-    def write(self, output, binary=False):
+    def __write(self, output, binary=False):
         """write data on the nodemcu port. If 'binary' is True the debug log
         will show the intended output as hex, otherwise as string"""
         if not binary:
@@ -129,23 +131,24 @@ class Uploader(object):
         self._port.write(output)
         self._port.flush()
 
-    def writeln(self, output):
+    def __writeln(self, output):
         """write, with linefeed"""
-        self.write(output + '\n')
+        self.__write(output + '\n')
 
-    def exchange(self, output, timeout=TIMEOUT):
-        self.writeln(output)
+    def __exchange(self, output, timeout=TIMEOUT):
+        """Write output to the port and wait for response"""
+        self.__writeln(output)
         self._port.flush()
-        return self.expect(timeout=timeout)
+        return self.__expect(timeout=timeout)
 
 
     def close(self):
         """restores the nodemcu to default baudrate and then closes the port"""
         try:
             if self.baud != self.start_baud:
-                self.set_baudrate(self.start_baud)
+                self.__set_baudrate(self.start_baud)
             self._port.flush()
-            self.clear_buffers()
+            self.__clear_buffers()
         except serial.serialutil.SerialException:
             pass
         log.debug('closing port')
@@ -159,9 +162,9 @@ class Uploader(object):
         """
         log.info('Preparing esp for transfer.')
 
-        for fn in LUA_FUNCTIONS:
-            d = self.exchange('print({0})'.format(fn))
-            if d.find('function:') == -1:
+        for func in LUA_FUNCTIONS:
+            detected = self.__exchange('print({0})'.format(func))
+            if detected.find('function:') == -1:
                 break
         else:
             log.info('Preparation already done. Not adding functions again.')
@@ -178,35 +181,36 @@ class Uploader(object):
             if len(line) == 0:
                 continue
 
-            d = self.exchange(line)
+            resp = self.__exchange(line)
             #do some basic test of the result
-            if ('unexpected' in d) or ('stdin' in d) or len(d) > len(functions)+10:
-                log.error('error when preparing "%s"', d)
+            if ('unexpected' in resp) or ('stdin' in resp) or len(resp) > len(functions)+10:
+                log.error('error when preparing "%s"', resp)
                 return False
         return True
 
     def download_file(self, filename):
-        res = self.exchange('send("{filename}")'.format(filename=filename))
+        """Download a file from device to local filesystem"""
+        res = self.__exchange('send("{filename}")'.format(filename=filename))
         if ('unexpected' in res) or ('stdin' in res):
-            log.error('Unexpected error downloading file', res)
+            log.error('Unexpected error downloading file: %s', res)
             raise Exception('Unexpected error downloading file')
 
         #tell device we are ready to receive
-        self.write('C')
+        self.__write('C')
         #we should get a NUL terminated filename to start with
-        sent_filename = self.expect(NUL).strip()
+        sent_filename = self.__expect(NUL).strip()
         log.info('receiveing ' + sent_filename)
 
         #ACK to start download
-        self.write(ACK, True);
-        buffer = ''
+        self.__write(ACK, True)
+        buf = ''
         data = ''
-        chunk, buffer = self.read_chunk(buffer)
+        chunk, buf = self.__read_chunk(buf)
         #read chunks until we get an empty which is the end
         while chunk != '':
-            self.write(ACK,True);
+            self.__write(ACK, True)
             data = data + chunk
-            chunk, buffer = self.read_chunk(buffer)
+            chunk, buf = self.__read_chunk(buf)
         return data
 
     def read_file(self, filename, destination=''):
@@ -214,29 +218,31 @@ class Uploader(object):
             destination = filename
         log.info('Transfering %s to %s', filename, destination)
         data = self.download_file(filename)
-        with open(destination, 'w') as f:
-            f.write(data)
+        with open(destination, 'w') as fil:
+            fil.write(data)
 
     def write_file(self, path, destination='', verify='none'):
+        """sends a file to the device using the transfer protocol"""
         filename = os.path.basename(path)
         if not destination:
             destination = filename
-        log.info('Transfering %s as %s', path, destination)
-        self.writeln("recv()")
 
-        res = self.expect('C> ')
+        log.info('Transfering %s as %s', path, destination)
+        self.__writeln("recv()")
+
+        res = self.__expect('C> ')
         if not res.endswith('C> '):
             log.error('Error waiting for esp "%s"', res)
             return
         log.debug('sending destination filename "%s"', destination)
-        self.write(destination + '\x00', True)
-        if not self.got_ack():
+        self.__write(destination + '\x00', True)
+        if not self.__got_ack():
             log.error('did not ack destination filename')
             return
 
-        f = open(path, 'rb')
-        content = f.read()
-        f.close()
+        fil = open(path, 'rb')
+        content = fil.read()
+        fil.close()
 
         log.debug('sending %d bytes in %s', len(content), filename)
         pos = 0
@@ -247,16 +253,16 @@ class Uploader(object):
                 rest = chunk_size
 
             data = content[pos:pos+rest]
-            if not self.write_chunk(data):
-                d = self.expect()
-                log.error('Bad chunk response "%s" %s', d, ':'.join(x.encode('hex') for x in d))
+            if not self.__write_chunk(data):
+                resp = self.__expect()
+                log.error('Bad chunk response "%s" %s', resp, ':'.join(x.encode('hex') for x in resp))
                 return
 
             pos += chunk_size
 
         log.debug('sending zero block')
         #zero size block
-        self.write_chunk('')
+        self.__write_chunk('')
 
         if verify == 'raw':
             log.info('Verifying...')
@@ -267,7 +273,7 @@ class Uploader(object):
                 log.info('Verification successfull. Contents are identical.')
         elif verify == 'sha1':
             #Calculate SHA1 on remote file. Extract just hash from result
-            data = self.exchange('shafile("'+destination+'")').splitlines()[1]
+            data = self.__exchange('shafile("'+destination+'")').splitlines()[1]
             log.info('Remote SHA1: %s', data)
 
             #Calculate hash of local data
@@ -283,24 +289,26 @@ class Uploader(object):
 
 
     def exec_file(self, path):
+        """execute the lines in the local file 'path'"""
         filename = os.path.basename(path)
         log.info('Execute %s', filename)
 
-        f = open(path, 'rt')
+        fil = open(path, 'r')
 
         res = '> '
-        for line in f:
+        for line in fil:
             line = line.rstrip('\r\n')
-            retlines = (res + self.exchange(line)).splitlines()
+            retlines = (res + self.__exchange(line)).splitlines()
             # Log all but the last line
             res = retlines.pop()
             for lin in retlines:
                 log.info(lin)
         # last line
         log.info(res)
-        f.close()
+        fil.close()
 
-    def got_ack(self):
+    def __got_ack(self):
+        """Returns true if ACK is received"""
         log.debug('waiting for ack')
         res = self._port.read(1)
         log.debug('ack read %s', res.encode('hex'))
@@ -311,12 +319,14 @@ class Uploader(object):
         lines = data.replace('\r', '').split('\n')
 
         for line in lines:
-            self.exchange(line)
+            self.__exchange(line)
 
         return
 
 
-    def write_chunk(self, chunk):
+    def __write_chunk(self, chunk):
+        """formats and sends a chunk of data to the device according
+        to transfer protocol"""
         log.debug('writing %d bytes chunk', len(chunk))
         data = BLOCK_START + chr(len(chunk)) + chunk
         if len(chunk) < 128:
@@ -324,87 +334,97 @@ class Uploader(object):
             log.debug('pad with %d characters', padding)
             data = data + (' ' * padding)
         log.debug("packet size %d", len(data))
-        self.write(data)
+        self.__write(data)
         self._port.flush()
-        return self.got_ack()
+        return self.__got_ack()
 
 
-    def read_chunk(self, buffer):
+    def __read_chunk(self, buf):
+        """Read a chunk of data"""
         log.debug('reading chunk')
         timeout = self._port.timeout
         if SYSTEM != 'Windows':
-            timer = self._port.timeout
             # Checking for new data every 100us is fast enough
-            lt = 0.0001
-            if self._port.timeout != lt:
-                self._port.timeout = lt
+            if self._port.timeout != MINIMAL_TIMEOUT:
+                self._port.timeout = MINIMAL_TIMEOUT
 
         end = time.time() + timeout
 
-        while len(buffer) < 130 and time.time() <= end:
-            buffer = buffer + self._port.read()
+        while len(buf) < 130 and time.time() <= end:
+            buf = buf + self._port.read()
 
-        if buffer[0] != BLOCK_START or len(buffer) < 130:
-            print 'buffer size:', len(buffer)
-            log.debug('buffer binary: ', ':'.join(x.encode('hex') for x in buffer))
+        if buf[0] != BLOCK_START or len(buf) < 130:
+            print 'buffer size:', len(buf)
+            log.debug('buffer binary: %s ', ':'.join(x.encode('hex') for x in buf))
             raise Exception('Bad blocksize or start byte')
 
-        chunk_size = ord(buffer[1])
-        data = buffer[2:chunk_size+2]
-        buffer = buffer[130:]
-        return (data, buffer)
+        if SYSTEM != 'Windows':
+            self._port.timeout = timeout
+
+        chunk_size = ord(buf[1])
+        data = buf[2:chunk_size+2]
+        buf = buf[130:]
+        return (data, buf)
 
 
     def file_list(self):
+        """list files on the device"""
         log.info('Listing files')
-        res = self.exchange(LIST_FILES)
+        res = self.__exchange(LIST_FILES)
         log.info(res)
         return res
 
-    def file_do(self, f):
-        log.info('Executing '+f)
-        res = self.exchange('dofile("'+f+'")')
+    def file_do(self, filename):
+        """Execute a file on the device using 'do'"""
+        log.info('Executing '+filename)
+        res = self.__exchange('dofile("'+filename+'")')
         log.info(res)
         return res
 
     def file_format(self):
+        """Formats device filesystem"""
         log.info('Formating, can take up to 1 minute...')
-        res = self.exchange('file.format()', timeout=60)
+        res = self.__exchange('file.format()', timeout=60)
         if 'format done' not in res:
             log.error(res)
         else:
             log.info(res)
         return res
 
-    def file_print(self, f):
-        log.info('Printing ' + f)
-        res = self.exchange(PRINT_FILE.format(filename=f))
+    def file_print(self, filename):
+        """Prints a file on the device to console"""
+        log.info('Printing ' + filename)
+        res = self.__exchange(PRINT_FILE.format(filename=filename))
         log.info(res)
         return res
 
     def node_heap(self):
+        """Show device heap size"""
         log.info('Heap')
-        res = self.exchange('print(node.heap())')
+        res = self.__exchange('print(node.heap())')
         log.info(res)
         return res
 
     def node_restart(self):
+        """Restarts device"""
         log.info('Restart')
-        res = self.exchange('node.restart()')
+        res = self.__exchange('node.restart()')
         log.info(res)
         return res
 
     def file_compile(self, path):
+        """Compiles a file specified by path on the device"""
         log.info('Compile '+path)
         cmd = 'node.compile("%s")' % path
-        res = self.exchange(cmd)
+        res = self.__exchange(cmd)
         log.info(res)
         return res
 
     def file_remove(self, path):
+        """Removes a file on the device"""
         log.info('Remove '+path)
         cmd = 'file.remove("%s")' % path
-        res = self.exchange(cmd)
+        res = self.__exchange(cmd)
         log.info(res)
         return res
 
