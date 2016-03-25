@@ -290,8 +290,9 @@ class Uploader(object):
         fil = open(path, 'rb')
         content = fil.read()
         fil.close()
+        log.info('Verifying using %s...' % verify)
         if verify == 'raw':
-            log.info('Verifying...')
+
             data = self.download_file(destination)
             if content != data:
                 log.error('Raw verification failed.')
