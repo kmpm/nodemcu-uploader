@@ -11,7 +11,8 @@ def get_tests():
 
 def full_suite():
     """creates a full suite of tests"""
-    logging.basicConfig(filename='test-debug.log', level=logging.INFO, format='%(message)s')
+    logging.basicConfig(filename='test.log', level=logging.INFO,
+        ormat='%(asctime)s %(levelname)s %(module)s.%(funcName)s %(message)s')
 
     from .misc import MiscTestCase
     from . import uploader
