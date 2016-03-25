@@ -31,7 +31,7 @@ function recv_block(d)
     uart.on('data')
   end
 end
-function recv_name(d) d = d:sub(1, string.find(d, '\000')-1) file.remove(d) file.open(d, 'w') uart.on('data', 130, recv_block, 0) uart.write(0, '\006') end
+function recv_name(d) d = d:gsub('%z.*', '') file.remove(d) file.open(d, 'w') uart.on('data', 130, recv_block, 0) uart.write(0, '\006') end
 function recv() uart.on('data', '\000', recv_name, 0) uart.write(0, 'C') end
 function shafile(f) crypto.toHex(crypto.fhash('sha1', f)) end
 """
