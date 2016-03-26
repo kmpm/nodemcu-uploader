@@ -232,7 +232,7 @@ class Uploader(object):
         """reading data from device into local file"""
         if not destination:
             destination = filename
-        log.info('Transfering %s to %s', filename, destination)
+        log.info('Transferring %s to %s', filename, destination)
         data = self.download_file(filename)
         with open(destination, 'w') as fil:
             fil.write(data)
@@ -243,7 +243,7 @@ class Uploader(object):
         if not destination:
             destination = filename
 
-        log.info('Transfering %s as %s', path, destination)
+        log.info('Transferring %s as %s', path, destination)
         self.__writeln("recv()")
 
         res = self.__expect('C> ')
@@ -298,7 +298,7 @@ class Uploader(object):
                 log.error('Raw verification failed.')
                 raise VerificationError('Verification failed.')
             else:
-                log.info('Verification successfull. Contents are identical.')
+                log.info('Verification successful. Contents are identical.')
         elif verify == 'sha1':
             #Calculate SHA1 on remote file. Extract just hash from result
             data = self.__exchange('shafile("'+destination+'")').splitlines()[1]
@@ -311,7 +311,7 @@ class Uploader(object):
                 log.error('SHA1 verification failed.')
                 raise VerificationError('SHA1 Verification failed.')
             else:
-                log.info('Verification successfull. Checksums match')
+                log.info('Verification successful. Checksums match')
 
         elif verify != 'none':
             raise Exception(verify + ' is not a valid verification method.')
@@ -384,7 +384,6 @@ class Uploader(object):
             buf = buf + self._port.read()
 
         if buf[0] != BLOCK_START or len(buf) < 130:
-            print 'buffer size:', len(buf)
             log.debug('buffer binary: %s ', ':'.join(x.encode('hex') for x in buf))
             raise Exception('Bad blocksize or start byte')
 
