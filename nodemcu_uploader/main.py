@@ -28,7 +28,7 @@ def destination_from_source(sources):
         srcdst = sources[i].split(':')
         if len(srcdst) == 2:
             destinations.append(srcdst[1])
-            newsources[i] = srcdst[0]
+            newsources.append(srcdst[0]) #proper list assignment
         else:
             listing = glob.glob(srcdst[0])
             for filename in listing:
