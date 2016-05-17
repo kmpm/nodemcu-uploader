@@ -17,11 +17,11 @@ def is_real():
         return False
     return str(SERIALPORT) != str(LOOPPORT)
 
-@unittest.skipUnless(LooseVersion(serialversion) >= LooseVersion('3.0.0') , 'Needs pySerial >= 3.0.0')
-class UploaderFakeTestCase(unittest.TestCase):
-    def test_init(self):
-        uploader = Uploader(SERIALPORT)
-        uploader.close()
+# @unittest.skipUnless(LooseVersion(serialversion) >= LooseVersion('3.0.0') , 'Needs pySerial >= 3.0.0')
+# class UploaderFakeTestCase(unittest.TestCase):
+#     def test_init(self):
+#         uploader = Uploader(SERIALPORT)
+#         uploader.close()
 
 @unittest.skipUnless(is_real(), 'Needs a configured SERIALPORT')
 class UploaderTestCase(unittest.TestCase):
