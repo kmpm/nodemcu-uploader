@@ -15,7 +15,7 @@ from serial import VERSION as serialversion
 log = logging.getLogger(__name__) # pylint: disable=C0103
 from .version import __version__
 
-def destination_from_source(sources):
+def destination_from_source(sources, use_glob=True):
     """
     Split each of the sources in the array on ':'
     First part will be source, second will be destination.
@@ -30,11 +30,15 @@ def destination_from_source(sources):
             destinations.append(srcdst[1])
             newsources.append(srcdst[0]) #proper list assignment
         else:
-            listing = glob.glob(srcdst[0])
-            for filename in listing:
-                newsources.append(filename)
-                #always use forward slash at destination
-                destinations.append(filename.replace('\\', '/'))
+            if use_glob:
+                listing = glob.glob(srcdst[0])
+                for filename in listing:
+                    newsources.append(filename)
+                    #always use forward slash at destination
+                    destinations.append(filename.replace('\\', '/'))
+            else:
+                newsources.append(srcdst[0])
+                destinations.append(srcdst[0])
 
     return [newsources, destinations]
 
@@ -68,10 +72,13 @@ def operation_upload(uploader, sources, verify, do_compile, do_file, do_restart)
 
 def operation_download(uploader, sources):
     """The download operation"""
-    destinations = destination_from_source(sources)
+    sources, destinations = destination_from_source(sources, False)
+    print 'sources', sources
+    print 'destinations', destinations
     if len(destinations) == len(sources):
-        for filename, dst in zip(sources, destinations):
-            uploader.read_file(filename, dst)
+        if uploader.prepare():
+            for filename, dst in zip(sources, destinations):
+                uploader.read_file(filename, dst)
     else:
         raise Exception('You must specify a destination filename for each file you want to download.')
     log.info('All done!')
