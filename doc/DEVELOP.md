@@ -30,3 +30,15 @@ Linux
 export SERIALPORT=/dev/ttyUSB0
 ```
 
+
+Publishing
+----------
+* http://peterdowns.com/posts/first-time-with-pypi.html
+
+```bash
+#test upload
+python setup.py sdist upload -r pypitest
+
+#real upload
+python setup.py sdist upload -r pypi
+```
