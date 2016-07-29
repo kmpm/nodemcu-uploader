@@ -1,22 +1,29 @@
- Usage 
+ Usage
 ===================
 This document is by no means complete.
 
 
 ## Common options
 * --help will show some help
-* --start_baud set at a default of 9600 (the speed of the nodemcu at boot)
+* --start_baud set at a default of 115200 (the speed of the nodemcu at boot in later
+  versions of the firmware)
 * --baud are set at a default of 115200
 * --port is by default __/dev/ttyUSB0__,
   __/dev/tty.SLAB_USBtoUART__ if on Mac and __COM1__ on Windows
 * the environment variable __SERIALPORT__ will override any default port
 
-Since v0.2.1 the program works with 2 speeds. It connects at a default
-(--start_baud) of 9600 baud which is what the default firmware uses. Immediately after
-first established communication it changes to a higher (--baud) speed which defaults
+Since v0.2.1 the program works with 2 possible speeds. It connects at a default
+(--start_baud) of 115200 baud which is what the default firmware uses. Earlier
+versions of the firmware and this tool used 9600 as start baudrate.
+Immediately after first established communication it changes
+to a higher (--baud) speed, if neccesary, which defaults
 to 115200. This allows all communication to happen much faster without having to
 recompile the firmware or do any manual changes to the speed.
-When done and before it closes the port it changes the speed back to normal.
+When done and before it closes the port it changes the speed back to normal
+if it was changed.
+Since v0.4.0 of nodemcu-uploader it tries to use the auto-baudrate feature
+build in to the firmware by sending a character repetedly when initiating
+communication.
 
 ## Commands
 ### Upload
