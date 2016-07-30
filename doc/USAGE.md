@@ -7,7 +7,7 @@ This document is by no means complete.
 * --help will show some help
 * --start_baud set at a default of 115200 (the speed of the nodemcu at boot in later
   versions of the firmware)
-* --baud are set at a default of 115200
+* --baud are set at a default of 115200. This setting is used for transfers and such.
 * --port is by default __/dev/ttyUSB0__,
   __/dev/tty.SLAB_USBtoUART__ if on Mac and __COM1__ on Windows
 * the environment variable __SERIALPORT__ will override any default port
@@ -27,62 +27,72 @@ communication.
 
 ## Commands
 ### Upload
-Uploading a number of files.
-Supports multiple files. If you want an alternate destination name, just
-add a colon ":" and the new destination filename.
+From computer to esp device.
 
 ```
-./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py [--compile] [--restart]
+nodemcu-uploader upload init.lua 
 ```
 
-Uploading a number of files, but saving with a different file name.
+
+Uploading a number of files, but saving with a different file name. If you want an alternate 
+destination name, just add a colon ":" and the new destination filename.
 
 ```
-./nodemcu-uploader.py upload init.lua:new_init.lua README.md:new_README.md [--compile] [--restart]
+nodemcu-uploader upload init.lua:new_init.lua README.md:new_README.md
 ```
 
-Uploading a number of files and verify successful uploading by downloading the file
-and comparing contents.
-
+Uploading with wildcard and compiling to .lc when uploaded.
 ```
-./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py --verify=raw
+nodemcu-uploader upload lib/*.lua --compile
 ```
 
-Uploading a number of files and verify successful uploading by doing a sha1 checksum.
-__Requires crypto module on the device__ and currently files not to big (~1000 bytes)
+
+Uploading and verify successful uploading by downloading the file
+to RAM and comparing contents.
 
 ```
-./nodemcu-uploader.py upload init.lua README.md nodemcu-uploader.py --verify=sha1
+nodemcu-uploader.py upload init.lua --verify=raw
+```
+
+Uploading and verify successful uploading by calculating the sha1
+checksum on the esp and compare it to the checksum of the original file.
+This requires the __crypto__ module in the firmware but it's more
+reliable than the _raw_ method.
+
+```
+nodemcu-uploader upload init.lua --verify=sha1
 ```
 
 
 ###Download
+From esp device to computer.
+
 Downloading a number of files.
 Supports multiple files. If you want an alternate destination name, just
 add a colon ":" and the new destination filename.
 ```
-./nodemcu-uploader.py download init.lua README.md nodemcu-uploader.py
+nodemcu-uploader download init.lua README.md nodemcu-uploader.py
 ```
 
 Downloading a number of files, but saving with a different file name.
 
 ```
-./nodemcu-uploader.py download init.lua:new_init.lua README.md:new_README.md
+nodemcu-uploader download init.lua:new_init.lua README.md:new_README.md
 ```
 
 ### List files
 ```
-./nodemcu-uploader.py --port com1 file list
+nodemcu-uploader --port com1 file list
 ```
 
 ### Format filesystem
 ```
-./nodemcu-uploader.py file format
+nodemcu-uploader file format
 ```
 
 ### Remove specific files
 ```
-./nodemcu-uploader.py file remove foo.lua
+nodemcu-uploader file remove foo.lua
 ```
 
 
