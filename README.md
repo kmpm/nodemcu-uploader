@@ -6,9 +6,9 @@ ESP8266 running NodeMCU as well as some other useful commands.
 It should work on Linux, and OS X; and with any type of file
 that fits the filesystem, binary or text.
 
-| master | next |
-|--------|------|
-|[![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=master)](https://travis-ci.org/kmpm/nodemcu-uploader) | [![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=next)](https://travis-ci.org/kmpm/nodemcu-uploader) |
+| master |
+|--------|
+|[![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=master)](https://travis-ci.org/kmpm/nodemcu-uploader) | 
 Please note that these tests is not complete and it might be the tests
 themselves that are having issues.
 
@@ -45,7 +45,15 @@ python easy_install pyserial
 
 Usage
 -----
-See doc/USAGE.md
+Since version v0.4.0 of the tool you will need a recent (june/july 2016) version 
+of the firmware for nodemcu. The default baudrate was changed in firmware from
+9600 to 115200 and this tool was changed as well. Download from  http://nodemcu-build.com/ .
+
+If you are using an older firmware you MUST use the option `--start-baud 9600`
+to the device to be recognized. Otherwise you will get a 
+_Device not found or wrong port_ error.
+
+For more details see doc/USAGE.md
 
 
 Issues
