@@ -58,7 +58,26 @@ For more details see doc/USAGE.md
 
 Issues
 -------
-Create a issue in github, https://github.com/kmpm/nodemcu-uploader/issues
+When reporting issues please provide operating system (windows, mac, linux etc.),
+version of this tool `nodemcu-uploader --version` and version of the firmware
+on you device. If you got the firmware from http://nodemcu-build.com/ please
+tell if it was the dev or master branch and at what date it was created.
+
+As for firmware version I would like to have a dump of the details you get
+when connected using a terminal to the device at boot time.
+It would look something like this...
+```
+NodeMCU custom build by frightanic.com
+        branch: master
+        commit: b580bfe79e6e73020c2bd7cd92a6afe01a8bc867
+        SSL: false
+        modules: crypto,file,gpio,http,mdns,mqtt,net,node,tmr,uart,wifi
+ build  built on: 2016-07-29 11:08
+ powered by Lua 5.1.4 on SDK 1.5.1(e67da894)
+ ```
+
+When you have as much of that as possible, 
+create a issue in github, https://github.com/kmpm/nodemcu-uploader/issues
 
 
 
