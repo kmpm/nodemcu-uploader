@@ -53,7 +53,7 @@ If you are using an older firmware you MUST use the option `--start-baud 9600`
 to the device to be recognized. Otherwise you will get a 
 _Device not found or wrong port_ error.
 
-For more details see doc/USAGE.md
+For more usage details see [USAGE.md in doc](doc/USAGE.md)
 
 
 Issues
@@ -83,7 +83,7 @@ create a issue in github, https://github.com/kmpm/nodemcu-uploader/issues
 
 Technical Details
 -----------------
-This uses *almost* an implementation of xmodem protocol for the up-/download part.
+This *almost* uses a implementation of xmodem protocol for the up-/download part.
 The main missing part is checksum and retransmission.
 
 This is made possible by first preparing the device by creating a set of helper
@@ -128,8 +128,9 @@ The block size was decided for...
 
 1. Being close to xmodem from where the inspiration came
 2. A fixed size allow the use of the uart.on('data') event very easy.
-3. 130 bytes would fit in the receive buffer buffer.
-4. It would not waste that much traffic if the total size uploaded was not a multiple of the allowed datasize.
+3. 130 bytes would fit in the receive buffer.
+4. It would not waste that much traffic if the total size uploaded was not a 
+   even multiple of the allowed datasize.
 
 
 
