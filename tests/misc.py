@@ -8,7 +8,7 @@ import os
 class MiscTestCase(unittest.TestCase):
 
     def test_version(self):
-        self.assertEqual(__version__, '0.4.0')
+        self.assertEqual(__version__, '0.4.1')
 
     def test_default_port(self):
         if os.environ.get('SERIALPORT', 'none') != 'none':
