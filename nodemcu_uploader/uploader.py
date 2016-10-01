@@ -61,7 +61,7 @@ class Uploader(object):
             try:
                 self.__writeln('UUUUUUUUUUUU') # Send enough characters for auto-baud
                 self.__clear_buffers()
-                time.sleep(0.15) # Wait for autobaud timer to expire
+                time.sleep(0.30) # Wait for autobaud timer to expire
                 self.__exchange(';') # Get a defined state
                 self.__writeln('print("%sync%");')
                 self.__expect('%sync%\r\n> ')
