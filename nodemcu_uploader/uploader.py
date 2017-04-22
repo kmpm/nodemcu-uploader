@@ -2,6 +2,10 @@
 # Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
 """Main functionality for nodemcu-uploader"""
 
+# Not sure about it, because UnicodeEncodeError throws anyway
+from __future__ import unicode_literals
+
+
 import time
 import logging
 import hashlib
@@ -11,7 +15,7 @@ import serial
 
 from .exceptions import CommunicationTimeout, DeviceNotFoundException, \
     BadResponseException, VerificationError, NoAckException
-from .utils import default_port, system
+from .utils import default_port, system, wrap, hexify, from_file, ENCODING
 from .luacode import RECV_LUA, SEND_LUA, LUA_FUNCTIONS, \
     LIST_FILES, UART_SETUP, PRINT_FILE
 
@@ -45,6 +49,9 @@ class Uploader(object):
             self._port = serial.serial_for_url(port, start_baud, timeout=timeout)
         else:
             self._port = serial.Serial(port, start_baud, timeout=timeout)
+
+        # black magic aka proxifying
+        self._port = wrap(self._port)
 
         self.start_baud = start_baud
         self.baud = baud
@@ -143,7 +150,7 @@ class Uploader(object):
         if not binary:
             log.debug('write: %s', output)
         else:
-            log.debug('write binary: %s', ':'.join(x.encode('hex') for x in output))
+            log.debug('write binary: %s', hexify(output))
         self._port.write(output)
         self._port.flush()
 
@@ -260,9 +267,7 @@ class Uploader(object):
             log.error('did not ack destination filename')
             raise NoAckException('Device did not ACK destination filename')
 
-        fil = open(path, 'rb')
-        content = fil.read()
-        fil.close()
+        content = from_file(path)
 
         log.debug('sending %d bytes in %s', len(content), filename)
         pos = 0
@@ -275,7 +280,7 @@ class Uploader(object):
             data = content[pos:pos+rest]
             if not self.__write_chunk(data):
                 resp = self.__expect()
-                log.error('Bad chunk response "%s" %s', resp, ':'.join(x.encode('hex') for x in resp))
+                log.error('Bad chunk response "%s" %s', resp, hexify(resp))
                 raise BadResponseException('Bad chunk response', ACK, resp)
 
             pos += chunk_size
@@ -290,9 +295,7 @@ class Uploader(object):
         """Tries to verify if path has same checksum as destination.
             Valid options for verify is 'raw', 'sha1' or 'none'
         """
-        fil = open(path, 'rb')
-        content = fil.read()
-        fil.close()
+        content = from_file(path)
         log.info('Verifying using %s...' % verify)
         if verify == 'raw':
 
@@ -308,7 +311,7 @@ class Uploader(object):
             log.info('Remote SHA1: %s', data)
 
             #Calculate hash of local data
-            filehashhex = hashlib.sha1(content.encode()).hexdigest()
+            filehashhex = hashlib.sha1(content.encode(ENCODING)).hexdigest()
             log.info('Local SHA1: %s', filehashhex)
             if data != filehashhex:
                 log.error('SHA1 verification failed.')
@@ -319,17 +322,15 @@ class Uploader(object):
         elif verify != 'none':
             raise Exception(verify + ' is not a valid verification method.')
 
-
-
     def exec_file(self, path):
         """execute the lines in the local file 'path'"""
         filename = os.path.basename(path)
         log.info('Execute %s', filename)
 
-        fil = open(path, 'r')
+        content = from_file(path)
 
         res = '> '
-        for line in fil:
+        for line in content:
             line = line.rstrip('\r\n')
             retlines = (res + self.__exchange(line)).splitlines()
             # Log all but the last line
@@ -338,24 +339,19 @@ class Uploader(object):
                 log.info(lin)
         # last line
         log.info(res)
-        fil.close()
 
     def __got_ack(self):
         """Returns true if ACK is received"""
         log.debug('waiting for ack')
         res = self._port.read(1)
-        log.debug('ack read %s', res.encode('hex'))
-        return res == '\x06' #ACK
-
+        log.debug('ack read %s', hexify(res))
+        return res == ACK
 
     def write_lines(self, data):
         """write lines, one by one, separated by \n to device"""
         lines = data.replace('\r', '').split('\n')
         for line in lines:
             self.__exchange(line)
-
-        return
-
 
     def __write_chunk(self, chunk):
         """formats and sends a chunk of data to the device according
@@ -370,7 +366,6 @@ class Uploader(object):
         self.__write(data)
         self._port.flush()
         return self.__got_ack()
-
 
     def __read_chunk(self, buf):
         """Read a chunk of data"""
@@ -387,7 +382,7 @@ class Uploader(object):
             buf = buf + self._port.read()
 
         if buf[0] != BLOCK_START or len(buf) < 130:
-            log.debug('buffer binary: %s ', ':'.join(x.encode('hex') for x in buf))
+            log.debug('buffer binary: %s ', hexify(buf))
             raise Exception('Bad blocksize or start byte')
 
         if SYSTEM != 'Windows':
@@ -398,14 +393,13 @@ class Uploader(object):
         buf = buf[130:]
         return (data, buf)
 
-
     def file_list(self):
         """list files on the device"""
         log.info('Listing files')
         res = self.__exchange(LIST_FILES)
         log.info(res)
         res = res.split('\r\n')
-        #skip first and last lines
+        # skip first and last lines
         res = res[1:-1]
         files = []
         for line in res:

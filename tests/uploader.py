@@ -40,7 +40,6 @@ class UploaderTestCase(unittest.TestCase):
         self.uploader.prepare()
         self.uploader.write_file('tests/fixtures/big_file.txt', verify='raw')
 
-
     def test_upload_and_verify_sha1(self):
         self.uploader.prepare()
         self.uploader.write_file('tests/fixtures/big_file.txt', verify='sha1')

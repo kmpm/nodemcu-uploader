@@ -3,6 +3,7 @@
 
 """This module is the cli for the Uploader class"""
 
+from __future__ import print_function
 
 import argparse
 import logging
@@ -11,6 +12,7 @@ import glob
 from .uploader import Uploader
 from .term import terminal
 from serial import VERSION as serialversion
+
 
 log = logging.getLogger(__name__) # pylint: disable=C0103
 from .version import __version__
@@ -73,8 +75,8 @@ def operation_upload(uploader, sources, verify, do_compile, do_file, do_restart)
 def operation_download(uploader, sources):
     """The download operation"""
     sources, destinations = destination_from_source(sources, False)
-    print 'sources', sources
-    print 'destinations', destinations
+    print('sources', sources)
+    print('destinations', destinations)
     if len(destinations) == len(sources):
         if uploader.prepare():
             for filename, dst in zip(sources, destinations):
