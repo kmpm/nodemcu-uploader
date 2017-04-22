@@ -5,9 +5,11 @@
 from platform import system
 from os import environ
 from wrapt import ObjectProxy
+from sys import version_info
 
 __all__ = ['default_port', 'system']
 
+PY2 = version_info.major == 2
 
 ENCODING = 'latin1'
 
@@ -26,7 +28,7 @@ def bytefy(x):
 
 
 def to_hex(x):
-    return hex(x) if type(x) == bytes else hex(ord(x))
+    return hex(ord(x))
 
 
 def hexify(byte_arr):
@@ -35,16 +37,18 @@ def hexify(byte_arr):
 
 def from_file(path):
     with open(path, 'rb') as f:
-        content = f.read().decode(ENCODING)
-    return content
+        content = f.read()
+    return content if PY2 else content.decode(ENCODING)
 
 
 class DecoderWrapper(ObjectProxy):
     def read(self, *args, **kwargs):
-        return self.__wrapped__.read(*args, **kwargs).decode(ENCODING)
+        res = self.__wrapped__.read(*args, **kwargs)
+        return res if PY2 else res.decode(ENCODING)
 
     def write(self, data):
-        return self.__wrapped__.write(data.encode(ENCODING))
+        data = data if PY2 else data.encode(ENCODING)
+        return self.__wrapped__.write(data)
 
 
 def wrap(x):
