@@ -35,6 +35,10 @@ Publishing
 ----------
 * http://peterdowns.com/posts/first-time-with-pypi.html
 
+Please make sure to bump the version number in
+nodemcu_uploader/version.py as well as the testing of that
+number in tests/misc.py
+
 ```bash
 #test upload
 python setup.py sdist upload -r pypitest
