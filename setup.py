@@ -9,7 +9,8 @@ exec(open('nodemcu_uploader/version.py').read()) #pylint: disable=W0122
 setup(name='nodemcu-uploader',
       version=__version__, #pylint: disable=E0602
       install_requires=[
-          'pyserial>=2.7'
+          'pyserial>=2.7',
+          'wrapt>=1.10.10'
       ],
       packages=['nodemcu_uploader'],
       #package_dir={'nodemcu_uploader': 'lib'},

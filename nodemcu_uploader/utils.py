@@ -7,7 +7,7 @@ from os import environ
 from wrapt import ObjectProxy
 from sys import version_info
 
-__all__ = ['default_port', 'system']
+__all__ = ['default_port', 'system', 'hexify', 'from_file', 'wrap', 'PY2', 'ENCODING']
 
 PY2 = version_info.major == 2
 
@@ -21,10 +21,6 @@ def default_port(sysname=system()):
         'Darwin': '/dev/tty.SLAB_USBtoUART'
     }.get(sysname, '/dev/ttyUSB0')
     return environ.get('SERIALPORT', system_default)
-
-
-def bytefy(x):
-    return x if type(x) == bytes else x.encode(ENCODING)
 
 
 def to_hex(x):
