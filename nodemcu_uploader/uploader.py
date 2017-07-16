@@ -327,11 +327,11 @@ class Uploader(object):
         filename = os.path.basename(path)
         log.info('Execute %s', filename)
 
-        content = from_file(path)
+        content = from_file(path).replace('\r', '').split('\n')
 
         res = '> '
         for line in content:
-            line = line.rstrip('\r\n')
+            line = line.rstrip('\n')
             retlines = (res + self.__exchange(line)).splitlines()
             # Log all but the last line
             res = retlines.pop()
