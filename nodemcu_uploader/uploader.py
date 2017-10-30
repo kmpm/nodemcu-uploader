@@ -39,9 +39,10 @@ class Uploader(object):
     BAUD = 115200
     START_BAUD = 115200
     TIMEOUT = 5
+    AUTOBAUD_TIME = 0.3
     PORT = default_port()
 
-    def __init__(self, port=PORT, baud=BAUD, start_baud=START_BAUD, timeout=TIMEOUT):
+    def __init__(self, port=PORT, baud=BAUD, start_baud=START_BAUD, timeout=TIMEOUT, autobaud_time=AUTOBAUD_TIME):
         self._timeout = Uploader.TIMEOUT
         self.set_timeout(timeout)
         log.info('opening port %s with %s baud', port, start_baud)
@@ -55,6 +56,7 @@ class Uploader(object):
 
         self.start_baud = start_baud
         self.baud = baud
+        self.autobaud_time = autobaud_time
         # Keeps things working, if following conections are made:
         ## RTS = CH_PD (i.e reset)
         ## DTR = GPIO0
@@ -68,7 +70,7 @@ class Uploader(object):
             try:
                 self.__writeln('UUUUUUUUUUUU') # Send enough characters for auto-baud
                 self.__clear_buffers()
-                time.sleep(0.30) # Wait for autobaud timer to expire
+                time.sleep(self.autobaud_time) # Wait for autobaud timer to expire
                 self.__exchange(';') # Get a defined state
                 self.__writeln('print("%sync%");')
                 self.__expect('%sync%\r\n> ')
