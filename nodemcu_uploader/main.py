@@ -85,11 +85,16 @@ def operation_download(uploader, sources):
         raise Exception('You must specify a destination filename for each file you want to download.')
     log.info('All done!')
 
+def operation_list(uploader):
+    """List file on target"""
+    files = uploader.file_list()
+    for f in files:
+        log.info("{file:30s} {size}".format(file=f[0], size=f[1]))
 
 def operation_file(uploader, cmd, filename=''):
     """File operations"""
     if cmd == 'list':
-        uploader.file_list()
+        operation_list(uploader)
     if cmd == 'do':
         for path in filename:
             uploader.file_do(path)
