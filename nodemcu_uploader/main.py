@@ -168,6 +168,12 @@ def main_func():
         dest='operation',
         help='Run nodemcu-uploader {command} -h for additional help')
 
+    backup_parser = subparsers.add_parser(
+        'backup',
+        help='Backup all the files on the nodemcu board')
+    backup_parser.add_argument('path', help='Folder where to store the backup')
+
+
     upload_parser = subparsers.add_parser(
         'upload',
         help='Path to one or more files to be uploaded. Destination name will be the same as the file name.')
@@ -287,5 +293,9 @@ def main_func():
             uploader.node_heap()
         elif args.ncmd == 'restart':
             uploader.node_restart()
+
+    elif args.operation == 'backup':
+        uploader.backup(args.path)
+
     #no uploader related commands after this point
     uploader.close()
