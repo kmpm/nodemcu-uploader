@@ -407,7 +407,6 @@ class Uploader(object):
         """list files on the device"""
         log.info('Listing files')
         res = self.__exchange(LIST_FILES)
-        log.info(res)
         res = res.split('\r\n')
         # skip first and last lines
         res = res[1:-1]
