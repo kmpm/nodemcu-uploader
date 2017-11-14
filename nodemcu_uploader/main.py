@@ -152,6 +152,13 @@ def main_func():
         type=arg_auto_int,
         default=Uploader.TIMEOUT)
 
+    parser.add_argument(
+        '--autobaud_time', '-a',
+        help='Duration of the autobaud timer',
+        type=float,
+        default=Uploader.AUTOBAUD_TIME,
+    )
+
     subparsers = parser.add_subparsers(
         dest='operation',
         help='Run nodemcu-uploader {command} -h for additional help')
@@ -249,7 +256,7 @@ def main_func():
         return
 
     # let uploader user the default (short) timeout for establishing connection
-    uploader = Uploader(args.port, args.baud, start_baud=args.start_baud)
+    uploader = Uploader(args.port, args.baud, start_baud=args.start_baud, autobaud_time=args.autobaud_time)
 
     # and reset the timeout (if we have the uploader&timeout)
     if args.timeout:
