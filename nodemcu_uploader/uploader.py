@@ -250,7 +250,8 @@ class Uploader(object):
 
         # Just in case, the filename may contain folder, so create it if needed.
         log.info(destination)
-        if not os.path.exists(os.path.dirname(destination)):
+        dirpath1 = os.path.dirname(destination)
+        if len(dirpath1) > 0 and not os.path.exists(dirpath1):
             try:
                 os.makedirs(os.path.dirname(destination))
             except OSError as e:  # Guard against race condition
