@@ -1,0 +1,40 @@
+_nodemcu_uploader_remote_files() {
+	nodemcu-uploader file list 2>&1  | awk '/\.lua\s+[0-9]+$/ { print $1 }' | tr "\n" ' '
+}
+
+_nodemcu_uploader() {
+	local cur prev opts
+
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+	prev_prev="${COMP_WORDS[COMP_CWORD-2]}"
+	opts="--help --verbose --version --port --baud --start_baud --timeout --autobaud_time"
+	cmds="backup upload exec download file node terminal"
+	node_options="heap restart"
+	file_options="list do format remove print"
+
+	if  [[ ${cur} == -* ]] ; then
+		COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+	else
+		case $prev in
+			node )		COMPREPLY=( $(compgen -W "${node_options}" -- ${cur}) ) ;;
+			file )		COMPREPLY=( $(compgen -W "${file_options}" -- ${cur}) ) ;;
+			upload )	COMPREPLY=( $(compgen -f -- ${cur}) ) ;;
+			download )	COMPREPLY=( $(compgen -W "$(_nodemcu_uploader_remote_files)" -- ${cur}) ) ;;
+			*)
+				if [[ ${prev_prev} == file ]] ; then
+					case ${prev} in
+						do | print | remove ) COMPREPLY=( $(compgen -W "$(_nodemcu_uploader_remote_files)" -- ${cur}) ) ;;
+					esac
+				else
+					COMPREPLY=( $(compgen -W "${cmds}" -- ${cur}) )
+				fi
+		esac
+	fi
+
+	return 0
+}
+
+complete -F _nodemcu_uploader nodemcu-uploader
+
