@@ -9,6 +9,7 @@ that fits the filesystem, binary or text.
 | master |
 |--------|
 |[![Build Status](https://travis-ci.org/kmpm/nodemcu-uploader.svg?branch=master)](https://travis-ci.org/kmpm/nodemcu-uploader) | 
+
 Please note that these tests is not complete and it might be the tests
 themselves that are having issues.
 
