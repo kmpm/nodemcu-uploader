@@ -246,7 +246,6 @@ def main_func():
 
     node_parse.add_argument('ncmd', choices=('heap', 'restart', 'info'), help="heap=print heap memory, restart=restart nodemcu, info=show node info")
 
-
     subparsers.add_parser(
         'terminal',
         help='Run pySerials miniterm'
