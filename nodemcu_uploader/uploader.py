@@ -458,9 +458,9 @@ class Uploader(object):
     def node_info(self):
         """Node info"""
         log.info('Node info')
-            res = self.__exchange('print(node.info())')
-            log.info(res)
-            return res
+        res = self.__exchange('print(node.info())')
+        log.info(res)
+        return res
     
     def file_compile(self, path):
         """Compiles a file specified by path on the device"""
