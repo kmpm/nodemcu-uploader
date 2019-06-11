@@ -244,7 +244,8 @@ def main_func():
         'node',
         help='Node functions')
 
-    node_parse.add_argument('ncmd', choices=('heap', 'restart'), help="heap=print heap memory, restart=restart nodemcu")
+    node_parse.add_argument('ncmd', choices=('heap', 'restart', 'info'), help="heap=print heap memory, restart=restart nodemcu, info=show node info")
+
 
     subparsers.add_parser(
         'terminal',
@@ -293,6 +294,8 @@ def main_func():
             uploader.node_heap()
         elif args.ncmd == 'restart':
             uploader.node_restart()
+        elif args.ncmd == 'info':
+            uploader.node_info()
 
     elif args.operation == 'backup':
         uploader.backup(args.path)
