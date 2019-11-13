@@ -14,6 +14,12 @@ Please note that these tests is not complete and it might be the tests
 themselves that are having issues.
 
 
+Call for maintainers
+--------------------
+Hi,
+This project is in need of maintenance and I (kmpm) do not have the time the project deserves.
+Look at https://github.com/kmpm/nodemcu-uploader/issues/90 for more information on what to do about it.
+
 
 Installation
 -------------
