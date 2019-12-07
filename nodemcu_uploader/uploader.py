@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
+# Copyright (C) 2015-2019 Peter Magnusson <peter@kmpm.se>
 """Main functionality for nodemcu-uploader"""
 
 # Not sure about it, because UnicodeEncodeError throws anyway

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
+# Copyright (C) 2015-2019 Peter Magnusson <peter@kmpm.se>
 """Setup for nodemcu-uploader"""
 
 from setuptools import setup

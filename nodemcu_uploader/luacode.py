@@ -2,7 +2,7 @@
 """This module contains all the LUA code that needs to be on the device
 to perform whats needed. They will be uploaded if they doesn't exist"""
 
-# Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
+# Copyright (C) 2015-2019 Peter Magnusson <peter@kmpm.se>
 # pylint: disable=C0301
 
 
