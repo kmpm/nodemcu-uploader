@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2016 Peter Magnusson <peter@birchroad.net>
+# Copyright (C) 2015-2019 Peter Magnusson <peter@kmpm.se>
 import unittest
 from nodemcu_uploader.utils import default_port
 from nodemcu_uploader import __version__
 import os
+
+from nodemcu_uploader import validate, exceptions
 
 class MiscTestCase(unittest.TestCase):
 
