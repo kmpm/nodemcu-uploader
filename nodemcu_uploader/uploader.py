@@ -13,7 +13,7 @@ import os
 import errno
 import serial
 
-
+from . import validate
 from .exceptions import CommunicationTimeout, DeviceNotFoundException, \
     BadResponseException, VerificationError, NoAckException
 from .utils import default_port, system, wrap, hexify, from_file, ENCODING
@@ -217,6 +217,7 @@ class Uploader(object):
 
     def download_file(self, filename):
         """Download a file from device to local filesystem"""
+        validate.remotePath(filename)
         res = self.__exchange('send("{filename}")'.format(filename=filename))
         if ('unexpected' in res) or ('stdin' in res):
             log.error('Unexpected error downloading file: %s', res)
@@ -265,7 +266,8 @@ class Uploader(object):
         filename = os.path.basename(path)
         if not destination:
             destination = filename
-
+        
+        validate.remotePath(destination)
         log.info('Transferring %s as %s', path, destination)
         self.__writeln("recv()")
 

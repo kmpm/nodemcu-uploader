@@ -19,3 +19,12 @@ class MiscTestCase(unittest.TestCase):
             self.assertEqual(default_port('Linux'), '/dev/ttyUSB0')
             self.assertEqual(default_port('Windows'), 'COM1')
             self.assertEqual(default_port('Darwin'), '/dev/tty.SLAB_USBtoUART')
+    
+    def test_remote_path_validation(self):
+        validate.remotePath("test/something/maximum/len.jpeg")
+        validate.remotePath("a")
+        def v(p):
+            validate.remotePath(p)
+        
+        self.assertRaises(exceptions.PathLengthException, (lambda: v("test/something/maximum/leng.jpeg")))
+        self.assertRaises(exceptions.PathLengthException, (lambda: v("")))

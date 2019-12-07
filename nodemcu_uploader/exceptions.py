@@ -26,3 +26,6 @@ class DeviceNotFoundException(Exception):
 
 class VerificationError(Exception):
     pass
+
+class PathLengthException(Exception):
+    pass
