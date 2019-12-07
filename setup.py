@@ -23,7 +23,7 @@ setup(name='nodemcu-uploader',
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
-          'Programming Language :: Python :: 2.7'
+          'Programming Language :: Python :: 3.5'
       ],
       license='MIT',
       test_suite="tests.get_tests",
