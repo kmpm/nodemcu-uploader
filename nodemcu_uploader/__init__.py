@@ -4,5 +4,5 @@
 
 """Library and util for uploading files to NodeMCU version 0.9.4 and later"""
 
-from .version import __version__
-from .uploader import Uploader
+from .version import __version__  # noqa: F401
+from .uploader import Uploader  # noqa: F401
