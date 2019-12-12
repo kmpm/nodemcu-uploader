@@ -45,17 +45,3 @@ def from_file(path):
     with open(path, 'rb') as f:
         content = f.read()
     return content
-
-
-# class DecoderWrapper(ObjectProxy):
-#     def read(self, *args, **kwargs):
-#         res = self.__wrapped__.read(*args, **kwargs)
-#         return res if PY2 else res.decode(ENCODING)
-
-#     def write(self, data):
-#         data = data if PY2 else data.encode(ENCODING)
-#         return self.__wrapped__.write(data)
-
-
-# def wrap(x):
-#     return DecoderWrapper(x)

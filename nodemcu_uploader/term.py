@@ -6,6 +6,7 @@ import sys
 
 from .utils import default_port
 
+
 def terminal(port=default_port(), baud='9600'):
     """Launch minterm from pyserial"""
     testargs = ['nodemcu-uploader', port, baud]

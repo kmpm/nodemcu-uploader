@@ -32,13 +32,13 @@ def destination_from_source(sources, use_glob=True):
         srcdst = sources[i].split(':')
         if len(srcdst) == 2:
             destinations.append(srcdst[1])
-            newsources.append(srcdst[0]) #proper list assignment
+            newsources.append(srcdst[0])  # proper list assignment
         else:
             if use_glob:
                 listing = glob.glob(srcdst[0])
                 for filename in listing:
                     newsources.append(filename)
-                    #always use forward slash at destination
+                    # always use forward slash at destination
                     destinations.append(filename.replace('\\', '/'))
             else:
                 newsources.append(srcdst[0])
@@ -256,7 +256,8 @@ def main_func():
     file_parser.add_argument(
         'cmd',
         choices=('list', 'do', 'format', 'remove', 'print', 'remove_all'),
-        help="list=list files, do=dofile given path, format=formate file area, remove=remove given path, remove_all=delete all files")
+        help="""list=list files, do=dofile given path, format=formate file area,
+            remove=remove given path, remove_all=delete all files""")
 
     file_parser.add_argument('filename', nargs='*', help='path for cmd')
 
@@ -264,7 +265,10 @@ def main_func():
         'node',
         help='Node functions')
 
-    node_parse.add_argument('ncmd', choices=('heap', 'restart', 'info'), help="heap=print heap memory, restart=restart nodemcu, info=show node info")
+    node_parse.add_argument(
+        'ncmd',
+        choices=('heap', 'restart', 'info'),
+        help="heap=print heap memory, restart=restart nodemcu, info=show node info")
 
     subparsers.add_parser(
         'terminal',

@@ -70,9 +70,9 @@ class Uploader(object):
             log.debug('getting in sync with LUA')
             self.__clear_buffers()
             try:
-                self.__writeln('UUUUUUUUUUUU') # Send enough characters for auto-baud
+                self.__writeln('UUUUUUUUUUUU')  # Send enough characters for auto-baud
                 self.__clear_buffers()
-                time.sleep(self.autobaud_time) # Wait for autobaud timer to expire
+                time.sleep(self.autobaud_time)  # Wait for autobaud timer to expire
                 self.__exchange(';')  # Get a defined state
                 self.__writeln('print("%sync%");')
                 self.__expect('%sync%\r\n> ')
@@ -98,15 +98,13 @@ class Uploader(object):
         try:
             self._port.setBaudrate(baud)
         except AttributeError:
-            #pySerial 2.7
+            # pySerial 2.7
             self._port.baudrate = baud
-
 
     def set_timeout(self, timeout):
         """Set the timeout for the communication with the device."""
-        timeout = int(timeout) # will raise on Error
+        timeout = int(timeout)  # will raise on Error
         self._timeout = timeout == 0 and 999999 or timeout
-
 
     def __clear_buffers(self):
         """Clears the input and output buffers"""
@@ -130,7 +128,6 @@ class Uploader(object):
             if self._port.timeout != MINIMAL_TIMEOUT:
                 self._port.timeout = MINIMAL_TIMEOUT
 
-        t = type(exp)
         if not isinstance(exp, bytes):
             exp = bytes(exp, ENCODING)
 
