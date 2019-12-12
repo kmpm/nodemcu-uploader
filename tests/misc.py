@@ -11,7 +11,7 @@ from nodemcu_uploader import validate, exceptions
 class MiscTestCase(unittest.TestCase):
 
     def test_version(self):
-        self.assertEqual(__version__, '0.5.0')
+        self.assertEqual(__version__, '1.0.0')
 
     def test_default_port(self):
         if os.environ.get('SERIALPORT', 'none') != 'none':

@@ -55,7 +55,6 @@ class TestTorture(unittest.TestCase):
     def task_remove_all_files(self):
         print('remove all files')
         self.uploader.file_remove_all()
-        self.task_check_remote_files(0)
 
     def task_download_all_files(self, files):
         print('download all files', files)
@@ -71,9 +70,10 @@ class TestTorture(unittest.TestCase):
 
     def test_for_long_time(self):
         for x in range(20):
-            print('{x} amount of times'.format(x=x))
+            print('{x} test sequence'.format(x=x+1))
             self.task_remove_tmp()
             self.task_remove_all_files()
+            self.task_check_remote_files(0)
             time.sleep(0.5)
             count = self.task_upload_verify_compile()
             self.assertEqual(count, 3)
