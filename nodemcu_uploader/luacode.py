@@ -37,13 +37,15 @@ function shafile(f) print(crypto.toHex(crypto.fhash('sha1', f))) end
 
 SEND_LUA = \
 r"""
-function send_block(d) l = string.len(d) uart.write(0, '\001' .. string.char(l) .. d .. string.rep('#', 128 - l)) return l end
-function send_file(f) file.open(f) s=file.seek('end', 0) p=0 uart.on('data', 1, function(data)
-if data == '\006' and p<s then file.seek('set',p) p=p+send_block(file.read(128)) else
-send_block('') file.close() uart.on('data') print('interrupted') end end, 0) uart.write(0, f .. '\000')
-end
 function send(f) uart.on('data', 1, function (data)
-    uart.on('data') if data == 'C' then send_file(f) else print('transfer interrupted') end end, 0)
+  local on,w=uart.on,uart.write
+  local fd
+  local function send_block(d) l = string.len(d) w(0, '\001' .. string.char(l) .. d .. string.rep('\0', 128 - l)) return l end
+  local function send_file(f) fd=file.open(f) s=fd:seek('end', 0) p=0 on('data', 1, function(data)
+    if data == '\006' and p<s then fd:seek('set',p) p=p+send_block(fd:read(128)) else
+    send_block('') fd:close() on('data') print('interrupted') end end, 0) w(0, f .. '\000')
+  end
+  uart.on('data') if data == 'C' then send_file(f) else print('transfer interrupted') end end, 0)
 end
 """
 
