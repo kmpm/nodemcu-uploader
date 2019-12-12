@@ -321,15 +321,17 @@ class Uploader(object):
         if verify != 'none':
             self.verify_file(path, destination, verify)
 
-    def verify_file(self, path, destination, verify='none'):
-        """Tries to verify if path has same checksum as destination.
+    def verify_file(self, local, remote, verify='none'):
+        """Tries to verify if local has same checksum as remote.
             Valid options for verify is 'raw', 'sha1' or 'none'
         """
-        content = from_file(path)
+        # get the local file contents
+        self.__writeln(';')
+        self.__expect('> ')
+        content = from_file(local)
         log.info('Verifying using %s...' % verify)
         if verify == 'raw':
-
-            data = self.download_file(destination)
+            data = self.download_file(remote)
             if content != data:
                 log.error('Raw verification failed.')
                 raise VerificationError('Verification failed.')
@@ -337,7 +339,7 @@ class Uploader(object):
                 log.info('Verification successful. Contents are identical.')
         elif verify == 'sha1':
             # Calculate SHA1 on remote file. Extract just hash from result
-            data = self.__exchange('shafile("'+destination+'")').splitlines()[1]
+            data = self.__exchange('shafile("'+remote+'")').splitlines()[1]
             log.info('Remote SHA1: %s', data)
 
             # Calculate hash of local data

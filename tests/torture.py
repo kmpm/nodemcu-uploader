@@ -41,8 +41,6 @@ class TestTorture(unittest.TestCase):
     def task_upload_verify_compile(self):
         print('upload-verify-compile')
         self.assertTrue(self.uploader.prepare())
-        pattern = os.path.join('tests', 'fixtures', '*.lua')
-        self.assertEqual(pattern, "tests\\fixtures\\*.lua")
         dests = operation_upload(self.uploader, "tests/fixtures/*.lua", 'sha1', True, False, False)
         return len(dests)
 
@@ -61,7 +59,9 @@ class TestTorture(unittest.TestCase):
         dest = os.path.join('.', 'tmp')
         operation_download(self.uploader, files, dest=dest)
         for f in files:
-            self.assertTrue(os.path.isfile(os.path.join(dest, f)))
+            local = os.path.join(dest, f)
+            self.assertTrue(os.path.isfile(local))
+            self.uploader.verify_file(local, f, 'sha1')
 
     def task_remove_tmp(self):
         dest = os.path.join('.', 'tmp')

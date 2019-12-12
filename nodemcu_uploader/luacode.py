@@ -41,9 +41,17 @@ function send(f) uart.on('data', 1, function (data)
   local on,w=uart.on,uart.write
   local fd
   local function send_block(d) l = string.len(d) w(0, '\001' .. string.char(l) .. d .. string.rep('\0', 128 - l)) return l end
-  local function send_file(f) fd=file.open(f) s=fd:seek('end', 0) p=0 on('data', 1, function(data)
-    if data == '\006' and p<s then fd:seek('set',p) p=p+send_block(fd:read(128)) else
-    send_block('') fd:close() on('data') print('interrupted') end end, 0) w(0, f .. '\000')
+  local function send_file(f)
+    local s, p
+    fd=file.open(f) s=fd:seek('end', 0) p=0
+    on('data', 1, function(data)
+      if data == '\006' and p<s then
+        fd:seek('set',p) p=p+send_block(fd:read(128))
+      else
+        send_block('') fd:close() on('data') print('interrupted')
+      end
+    end, 0)
+    w(0, f .. '\000')
   end
   uart.on('data') if data == 'C' then send_file(f) else print('transfer interrupted') end end, 0)
 end
