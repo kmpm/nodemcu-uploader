@@ -17,8 +17,9 @@ themselves that are having issues.
 Call for maintainers
 --------------------
 Hi,
-This project is in need of maintenance and I (kmpm) do not have the time the project deserves.
-Look at https://github.com/kmpm/nodemcu-uploader/issues/90 for more information on what to do about it.
+This project is in need of maintenance and I (kmpm) do not have the time the 
+project deserves. Look at https://github.com/kmpm/nodemcu-uploader/issues/90 
+for more information on what to do about it or email peter@kmpm.se
 
 
 Installation
@@ -52,9 +53,11 @@ python easy_install pyserial
 
 Usage
 -----
+Download NodeMCU firmware from  http://nodemcu-build.com/ .
+
 Since version v0.4.0 of the tool you will need a recent (june/july 2016) version 
 of the firmware for nodemcu. The default baudrate was changed in firmware from
-9600 to 115200 and this tool was changed as well. Download from  http://nodemcu-build.com/ .
+9600 to 115200 and this tool was changed as well. 
 
 If you are using an older firmware you MUST use the option `--start-baud 9600`
 to the device to be recognized. Otherwise you will get a 

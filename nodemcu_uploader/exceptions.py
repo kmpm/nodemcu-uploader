@@ -34,3 +34,9 @@ class VerificationError(Exception):
 
 class PathLengthException(Exception):
     pass
+
+
+class ValidationException(Exception):
+    def __init__(self, message, key, value):
+        message = "Validation Exception. {key} was {message}. '{value}'".format(message=message, key=key, value=value)
+        super(ValidationException, self).__init__(message)

@@ -5,16 +5,15 @@
 
 from setuptools import setup
 
-exec(open('nodemcu_uploader/version.py').read()) #pylint: disable=W0122
+exec(open('nodemcu_uploader/version.py').read())  # pylint: disable=W0122
 
 setup(name='nodemcu-uploader',
-      version=__version__, #pylint: disable=E0602
+      version=__version__,  # noqa: F821
       install_requires=[
-          'pyserial>=2.7',
-          'wrapt>=1.10.10'
+          'pyserial>=3.4'
       ],
       packages=['nodemcu_uploader'],
-      #package_dir={'nodemcu_uploader': 'lib'},
+      # package_dir={'nodemcu_uploader': 'lib'},
       url='https://github.com/kmpm/nodemcu-uploader',
       author='kmpm',
       author_email='peter@birchroad.net',
@@ -33,4 +32,4 @@ setup(name='nodemcu-uploader',
           ]
       },
       zip_safe=False
-     )
+    )

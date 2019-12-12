@@ -8,14 +8,16 @@ from __future__ import print_function
 import argparse
 import logging
 import os
+import sys
 import glob
 from .uploader import Uploader
 from .term import terminal
 from serial import VERSION as serialversion
-
-
-log = logging.getLogger(__name__) # pylint: disable=C0103
 from .version import __version__
+
+
+log = logging.getLogger(__name__)  # pylint: disable=C0103
+
 
 def destination_from_source(sources, use_glob=True):
     """
@@ -47,14 +49,18 @@ def destination_from_source(sources, use_glob=True):
 
 def operation_upload(uploader, sources, verify, do_compile, do_file, do_restart):
     """The upload operation"""
+    if not isinstance(sources, list):
+        sources = [sources]
     sources, destinations = destination_from_source(sources)
     if len(destinations) == len(sources):
         if uploader.prepare():
             for filename, dst in zip(sources, destinations):
                 if do_compile:
                     uploader.file_remove(os.path.splitext(dst)[0]+'.lc')
+                if not os.path.exists(filename) and not os.path.isfile(filename):
+                    raise Exception("File does not exist. {filename}".format(filename=filename))
                 uploader.write_file(filename, dst, verify)
-                #init.lua is not allowed to be compiled
+                # init.lua is not allowed to be compiled
                 if do_compile and dst != 'init.lua':
                     uploader.file_compile(dst)
                     uploader.file_remove(dst)
@@ -70,26 +76,31 @@ def operation_upload(uploader, sources, verify, do_compile, do_file, do_restart)
     if do_restart:
         uploader.node_restart()
     log.info('All done!')
+    return destinations
 
 
-def operation_download(uploader, sources):
+def operation_download(uploader, sources, *args, **kwargs):
     """The download operation"""
     sources, destinations = destination_from_source(sources, False)
-    print('sources', sources)
-    print('destinations', destinations)
+    # print('sources', sources)
+    # print('destinations', destinations)
+    dest = kwargs.pop('dest', '')
     if len(destinations) == len(sources):
         if uploader.prepare():
             for filename, dst in zip(sources, destinations):
+                dst = os.path.join(dest, dst)
                 uploader.read_file(filename, dst)
     else:
         raise Exception('You must specify a destination filename for each file you want to download.')
     log.info('All done!')
+
 
 def operation_list(uploader):
     """List file on target"""
     files = uploader.file_list()
     for f in files:
         log.info("{file:30s} {size}".format(file=f[0], size=f[1]))
+
 
 def operation_file(uploader, cmd, filename=''):
     """File operations"""
@@ -106,7 +117,8 @@ def operation_file(uploader, cmd, filename=''):
     elif cmd == 'print':
         for path in filename:
             uploader.file_print(path)
-
+    elif cmd == 'remove_all':
+        uploader.file_remove_all()
 
 
 def arg_auto_int(value):
@@ -128,10 +140,19 @@ def main_func():
         default=False)
 
     parser.add_argument(
+        '--silent',
+        help='silent output. Errors and worse',
+        action='store_true',
+        default=False)
+
+    parser.add_argument(
         '--version',
         help='prints the version and exists',
         action='version',
-        version='%(prog)s {version} (serial {serialversion})'.format(version=__version__, serialversion=serialversion)
+        version='%(prog)s {version} (serial {serialversion}, python {pv})'.format(
+            version=__version__,
+            serialversion=serialversion,
+            pv=sys.version)
     )
 
     parser.add_argument(
@@ -172,7 +193,6 @@ def main_func():
         'backup',
         help='Backup all the files on the nodemcu board')
     backup_parser.add_argument('path', help='Folder where to store the backup')
-
 
     upload_parser = subparsers.add_parser(
         'upload',
@@ -224,10 +244,10 @@ def main_func():
         'download',
         help='Path to one or more files to be downloaded. Destination name will be the same as the file name.')
 
-    download_parser.add_argument('filename',
+    download_parser.add_argument(
+        'filename',
         nargs='+',
         help='Lua file to download. Use colon to give alternate destination.')
-
 
     file_parser = subparsers.add_parser(
         'file',
@@ -235,8 +255,8 @@ def main_func():
 
     file_parser.add_argument(
         'cmd',
-        choices=('list', 'do', 'format', 'remove', 'print'),
-        help="list=list files, do=dofile given path, format=formate file area, remove=remove given path")
+        choices=('list', 'do', 'format', 'remove', 'print', 'remove_all'),
+        help="list=list files, do=dofile given path, format=formate file area, remove=remove given path, remove_all=delete all files")
 
     file_parser.add_argument('filename', nargs='*', help='path for cmd')
 
@@ -254,15 +274,17 @@ def main_func():
     args = parser.parse_args()
 
     default_level = logging.INFO
+    if args.silent:
+        default_level = logging.ERROR
     if args.verbose:
         default_level = logging.DEBUG
 
-    #formatter = logging.Formatter('%(message)s')
+    # formatter = logging.Formatter('%(message)s')
 
     logging.basicConfig(level=default_level, format='%(message)s')
 
     if args.operation == 'terminal':
-        #uploader can not claim the port
+        # uploader can not claim the port
         terminal(args.port, str(args.start_baud))
         return
 
@@ -299,5 +321,5 @@ def main_func():
     elif args.operation == 'backup':
         uploader.backup(args.path)
 
-    #no uploader related commands after this point
+    # no uploader related commands after this point
     uploader.close()

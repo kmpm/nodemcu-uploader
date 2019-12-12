@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2019 Peter Magnusson <peter@kmpm.se>
-#pylint: disable=C0111,R0904
+# pylint: disable=C0111,R0904
 import unittest
-import os, time
+import time
+import os
 from nodemcu_uploader import Uploader
-from serial import VERSION as serialversion
-from distutils.version import LooseVersion
+# from serial import VERSION as serialversion
+# from distutils.version import LooseVersion
 
 LOOPPORT = 'loop://'
 
-#on which port should the tests be performed
+# on which port should the tests be performed
 SERIALPORT = os.environ.get('SERIALPORT', LOOPPORT)
+
 
 def is_real():
     if SERIALPORT.strip() == '':
@@ -23,9 +25,11 @@ def is_real():
 #         uploader = Uploader(SERIALPORT)
 #         uploader.close()
 
+
 @unittest.skipUnless(is_real(), 'Needs a configured SERIALPORT')
 class UploaderTestCase(unittest.TestCase):
     uploader = None
+
     def setUp(self):
         self.uploader = Uploader(SERIALPORT)
 
@@ -35,7 +39,6 @@ class UploaderTestCase(unittest.TestCase):
         self.uploader.close()
         time.sleep(1)
 
-
     def test_upload_and_verify_raw(self):
         self.uploader.prepare()
         self.uploader.write_file('tests/fixtures/big_file.txt', verify='raw')
@@ -44,11 +47,9 @@ class UploaderTestCase(unittest.TestCase):
         self.uploader.prepare()
         self.uploader.write_file('tests/fixtures/big_file.txt', verify='sha1')
 
-
     def test_upload_strange_file(self):
         self.uploader.prepare()
         self.uploader.write_file('tests/fixtures/testuploadfail.txt', verify='raw')
-
 
     def test_file_list(self):
         lst = self.uploader.file_list()
@@ -56,8 +57,11 @@ class UploaderTestCase(unittest.TestCase):
         self.assertGreaterEqual(len(lst), 1)
         self.assertLess(len(lst), 50)
 
-
     def test_node_heap(self):
         size = self.uploader.node_heap()
         self.assertGreater(size, 20000)
         self.assertLess(size, 60000)
+
+    def test_node_info(self):
+        result = self.uploader.node_info()
+        self.assertNotIn("deprecated", result)
