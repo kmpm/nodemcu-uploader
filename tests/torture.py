@@ -10,7 +10,7 @@ import shutil
 log = logging.getLogger(__name__)
 logging.basicConfig(
     filename='test.log',
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s %(levelname)s %(module)s.%(funcName)s %(message)s')
 
 LOOPPORT = 'loop://'
@@ -30,11 +30,11 @@ class TestTorture(unittest.TestCase):
     uploader = None
 
     def setUp(self):
-        log.debug("setUp")
+        log.info("setUp")
         self.uploader = Uploader(SERIALPORT)
 
     def tearDown(self):
-        log.debug("tearDown")
+        log.info("tearDown")
         if is_real():
             self.uploader.node_restart()
         self.uploader.close()
@@ -42,14 +42,14 @@ class TestTorture(unittest.TestCase):
 
     def task_upload_verify_compile(self):
         """Upload lua code, verify and compile"""
-        log.debug('upload-verify-compile')
+        log.info('upload-verify-compile')
         self.assertTrue(self.uploader.prepare())
         dests = operation_upload(self.uploader, "tests/fixtures/*.lua", 'sha1', True, False, False)
         return len(dests)
 
     def task_upload_verify(self):
         """Upload some text files and verify"""
-        log.debug('upload-verify')
+        log.info('upload-verify')
         dests = operation_upload(self.uploader, "tests/fixtures/*_file.txt", 'sha1', False, False, False)
         return len(dests)
 
@@ -62,12 +62,12 @@ class TestTorture(unittest.TestCase):
 
     def task_remove_all_files(self):
         """Remove all files on device"""
-        log.debug('remove all files')
+        log.info('remove all files')
         self.uploader.file_remove_all()
 
     def task_download_all_files(self, files):
         """Downloads all files on device and do a sha1 checksum"""
-        log.debug('download all files and verify. %s', files)
+        log.info('download all files and verify. %s', files)
         dest = os.path.join('.', 'tmp')
         operation_download(self.uploader, files, dest=dest)
         for f in files:
@@ -82,7 +82,8 @@ class TestTorture(unittest.TestCase):
             shutil.rmtree(dest)
 
     def test_for_long_time(self):
-        testcount = 2
+        """Run a sequence of steps a number of times"""
+        testcount = 10
         for x in range(testcount):
             print('test sequence {0}/{1}'.format(x+1, testcount))
             log.info('--- test sequence {0}/{1} ---'.format(x+1, testcount))
