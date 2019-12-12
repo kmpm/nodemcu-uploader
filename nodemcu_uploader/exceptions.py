@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2019 Peter Magnusson <peter@kmpm.se>
-#pylint: disable=C0111
+# pylint: disable=C0111
 
 """Various custom exceptions"""
+
 
 class CommunicationTimeout(Exception):
     def __init__(self, message, buf):
@@ -18,14 +19,18 @@ class BadResponseException(Exception):
         self.expected = expected
         self.actual = actual
 
+
 class NoAckException(Exception):
     pass
+
 
 class DeviceNotFoundException(Exception):
     pass
 
+
 class VerificationError(Exception):
     pass
+
 
 class PathLengthException(Exception):
     pass
