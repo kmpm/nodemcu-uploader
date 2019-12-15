@@ -14,9 +14,10 @@ import errno
 import serial
 
 from . import validate
+from .serialutils import default_port
 from .exceptions import CommunicationTimeout, DeviceNotFoundException, \
     BadResponseException, VerificationError, NoAckException
-from .utils import default_port, system, hexify, from_file, ENCODING
+from .utils import system, hexify, from_file, ENCODING
 from .luacode import RECV_LUA, SEND_LUA, LUA_FUNCTIONS, \
     LIST_FILES, UART_SETUP, PRINT_FILE, INFO_GROUP, REMOVE_ALL_FILES
 

@@ -4,7 +4,7 @@
 from serial.tools import miniterm
 import sys
 
-from .utils import default_port
+from .serialutils import default_port
 
 
 def terminal(port=default_port(), baud='9600'):

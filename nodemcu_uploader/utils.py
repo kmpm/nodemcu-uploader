@@ -3,11 +3,11 @@
 """Various utility functions"""
 
 from platform import system
-from os import environ
+
 # from wrapt import ObjectProxy
 from sys import version_info
 
-__all__ = ['default_port', 'system', 'hexify', 'from_file', 'PY2', 'ENCODING']
+__all__ = ['system', 'hexify', 'from_file', 'PY2', 'ENCODING']
 
 PY2 = version_info.major == 2
 
@@ -15,15 +15,6 @@ if PY2:
     raise Exception("Python 2 is no longer supported")
 
 ENCODING = 'latin1'
-
-
-def default_port(sysname=system()):
-    """This returns the default port used for different systems if SERIALPORT env variable is not set"""
-    system_default = {
-        'Windows': 'COM1',
-        'Darwin': '/dev/tty.SLAB_USBtoUART'
-    }.get(sysname, '/dev/ttyUSB0')
-    return environ.get('SERIALPORT', system_default)
 
 
 def to_hex(x):
