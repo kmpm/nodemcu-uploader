@@ -28,7 +28,7 @@ function recv()
         if l >= 0  then fd:write(d:sub(3, l+2)); end
         if l == 0 then fd:close(); w(0, ack); return on('data') else w(0, ack) end
     end
-    local function recv_name(d) d = d:gsub('%z.*', '') file.remove(d) fd=file.open(d, 'w') on('data', 130, recv_block, 0) w(0, ack) end
+    local function recv_name(d) d = d:gsub('%z.*', '') d:sub(1,-2) file.remove(d) fd=file.open(d, 'w') on('data', 130, recv_block, 0) w(0, ack) end
     on('data', '\0', recv_name, 0)
     w(0, 'C')
   end

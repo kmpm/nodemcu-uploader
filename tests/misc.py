@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2015-2019 Peter Magnusson <peter@kmpm.se>
 import unittest
-from nodemcu_uploader.utils import default_port
+from nodemcu_uploader.serialutils import default_port
 from nodemcu_uploader import __version__
 import os
 
@@ -19,9 +19,9 @@ class MiscTestCase(unittest.TestCase):
             self.assertEqual(default_port(), os.environ['SERIALPORT'])
         else:
             # Test as if it were given system
-            self.assertEqual(default_port('Linux'), '/dev/ttyUSB0')
-            self.assertEqual(default_port('Windows'), 'COM1')
-            self.assertEqual(default_port('Darwin'), '/dev/tty.SLAB_USBtoUART')
+            self.assertEqual(default_port('Linux', False), '/dev/ttyUSB0')
+            self.assertEqual(default_port('Windows', False), 'COM1')
+            self.assertEqual(default_port('Darwin', False), '/dev/tty.SLAB_USBtoUART')
 
     def test_remote_path_validation(self):
         validate.remotePath("test/something/maximum/len.jpeg")
@@ -30,5 +30,5 @@ class MiscTestCase(unittest.TestCase):
         def v(p):
             validate.remotePath(p)
 
-        self.assertRaises(exceptions.PathLengthException, (lambda: v("test/something/maximum/leng.jpeg")))
-        self.assertRaises(exceptions.PathLengthException, (lambda: v("")))
+        self.assertRaises(exceptions.ValidationException, (lambda: v("test/something/maximum/leng.jpeg")))
+        self.assertRaises(exceptions.ValidationException, (lambda: v("")))
