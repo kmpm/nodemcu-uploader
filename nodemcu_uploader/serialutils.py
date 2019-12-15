@@ -6,14 +6,14 @@ from os import environ
 from serial.tools import list_ports
 
 
-def default_port(sysname=system()):
+def default_port(sysname=system(), detect=True):
     """This returns the default port used for different systems if SERIALPORT env variable is not set"""
     system_default = {
         'Windows': 'COM1',
         'Darwin': '/dev/tty.SLAB_USBtoUART'
     }.get(sysname, '/dev/ttyUSB0')
     # if SERIALPORT is set then don't even waste time detecting ports
-    if 'SERIALPORT' not in environ:
+    if 'SERIALPORT' not in environ and detect:
         try:
             ports = list_ports.comports(include_links=False)
             if len(ports) == 1:
