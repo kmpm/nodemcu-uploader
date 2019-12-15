@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 import glob
+import serial
 from .uploader import Uploader
 from .term import terminal
 from serial import VERSION as serialversion
@@ -95,7 +96,7 @@ def operation_download(uploader, sources, *args, **kwargs):
     log.info('All done!')
 
 
-def operation_list(uploader):
+def operation_list_files(uploader):
     """List file on target"""
     files = uploader.file_list()
     for f in files:
@@ -105,7 +106,7 @@ def operation_list(uploader):
 def operation_file(uploader, cmd, filename=''):
     """File operations"""
     if cmd == 'list':
-        operation_list(uploader)
+        operation_list_files(uploader)
     if cmd == 'do':
         for path in filename:
             uploader.file_do(path)
@@ -119,6 +120,14 @@ def operation_file(uploader, cmd, filename=''):
             uploader.file_print(path)
     elif cmd == 'remove_all':
         uploader.file_remove_all()
+
+
+def operation_port(args):
+    if args.cmd == 'list':
+        ports = serial.tools.list_ports.comports(include_links=False)
+        print('device', 'vid', 'pid')
+        for p in ports:
+            print(p.device, p.vid, p.pid)
 
 
 def arg_auto_int(value):
@@ -275,6 +284,16 @@ def main_func():
         help='Run pySerials miniterm'
     )
 
+    port_parser = subparsers.add_parser(
+        'port',
+        help='serial port stuff'
+    )
+
+    port_parser.add_argument(
+        'cmd',
+        choices=('list',)
+    )
+
     args = parser.parse_args()
 
     default_level = logging.INFO
@@ -290,6 +309,9 @@ def main_func():
     if args.operation == 'terminal':
         # uploader can not claim the port
         terminal(args.port, str(args.start_baud))
+        return
+    elif args.operation == 'port':
+        operation_port(args)
         return
 
     # let uploader user the default (short) timeout for establishing connection
@@ -324,6 +346,7 @@ def main_func():
 
     elif args.operation == 'backup':
         uploader.backup(args.path)
+
 
     # no uploader related commands after this point
     uploader.close()
