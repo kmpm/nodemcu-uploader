@@ -19,6 +19,8 @@ Testing
 ```
 pip install -r test_requirements.txt
 coverage run setup.py test
+# or even better testing with tox
+tox
 ```
 
 To run tests that actually communicate with a device you
