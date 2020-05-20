@@ -19,7 +19,7 @@ Call for maintainers
 Hi,
 This project is in need of maintenance and I (kmpm) do not have the time the 
 project deserves. Look at https://github.com/kmpm/nodemcu-uploader/issues/90 
-for more information on what to do about it or email peter@kmpm.se
+for more information on what to do about it or email me@kmpm.se
 
 
 Installation
