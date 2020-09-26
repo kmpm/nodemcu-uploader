@@ -138,8 +138,8 @@ REM on all subsequent commands the default port `com3`would be assumed
 nodemcu-uploader file list
 ```
 
-### Using autocompletion
+### Using autocompletion (on Linux)
 There is an autocompletion file for bash, in [bash_completion.d/nodemcu_uploader](bash_completion.d/nodemcu_uploader)
 You can source this file:
 `source doc/bash_completion.d/nodemcu_uploader`
-or if you want: permanently install it on your system in `/etc/bash_completion.d/`
+or if you want: permanently install it on your Linux system in `/etc/bash_completion.d/`
