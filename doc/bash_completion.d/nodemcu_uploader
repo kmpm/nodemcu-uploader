@@ -36,5 +36,5 @@ _nodemcu_uploader() {
 	return 0
 }
 
-complete -F _nodemcu_uploader nodemcu-uploader
+complete -F _nodemcu_uploader nodemcu-uploader nodemcu-uploader.py
 
