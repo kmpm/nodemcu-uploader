@@ -32,7 +32,12 @@ function recv()
     on('data', '\0', recv_name, 0)
     w(0, 'C')
   end
-function shafile(f) print(crypto.toHex(crypto.fhash('sha1', f))) end
+function shafile(f)
+    if not crypto then print("unsupported") return end
+    local toHex = crypto.toHex and crypto.toHex or
+        (encoder and encoder.toHex or function() return "unsupported" end)
+    print(toHex(crypto.fhash('sha1', f)))
+end
 """  # noqa: E122
 
 SEND_LUA = \
