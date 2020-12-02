@@ -35,16 +35,20 @@ export SERIALPORT=/dev/ttyUSB0
 
 Publishing
 ----------
-* http://peterdowns.com/posts/first-time-with-pypi.html
+* https://packaging.python.org/tutorials/packaging-projects/
 
 Please make sure to bump the version number in
 nodemcu_uploader/version.py as well as the testing of that
 number in tests/misc.py
 
 ```bash
+#
+python -m pip install --upgrade setuptools wheel twine
+python setup.py sdist bdist_wheel
+
 #test upload
-python setup.py sdist upload -r pypitest
+python -m twine upload -u __token__ --repository testpypi dist/*
 
 #real upload
-python setup.py sdist upload -r pypi
+python -m twine upload -u __token__ dist/*
 ```
