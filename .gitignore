@@ -4,6 +4,7 @@
 dist/
 build/
 *.pyc
+__pycache__/
 
 # testing
 .coverage
@@ -11,6 +12,7 @@ env/
 env3/
 *.log
 tmp/
+venv/
 
 # editors
 .vscode/

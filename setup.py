@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright (C) 2015-2019 Peter Magnusson <peter@kmpm.se>
+# Copyright (C) 2015-2020 Peter Magnusson <me@kmpm.se>
 """Setup for nodemcu-uploader"""
 
 from setuptools import setup
@@ -16,13 +16,13 @@ setup(name='nodemcu-uploader',
       # package_dir={'nodemcu_uploader': 'lib'},
       url='https://github.com/kmpm/nodemcu-uploader',
       author='kmpm',
-      author_email='peter@birchroad.net',
+      author_email='me@kmpm.se',
       description='tool for uploading files to the filesystem of an ESP8266 running NodeMCU.',
       keywords=['esp8266', 'upload', 'nodemcu'],
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
-          'Programming Language :: Python :: 3.5'
+          'Programming Language :: Python :: 3'
       ],
       license='MIT',
       test_suite="tests.get_tests",
