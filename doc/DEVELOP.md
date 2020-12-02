@@ -3,20 +3,20 @@ Develop and Test nodemcu-uploader
 
 Configure development environment
 -------
-```
+```shell
 git clone https://github.com/kmpm/nodemcu-uploader
 cd nodemcu-uploader
-virtualenv env
-. env/bin/activate
+python3 -m venv
+. venv/bin/activate
 pip install -r test_requirements.txt
-python setyp.py develop
+pip install -e .
 ```
 
 
 
 Testing
 -------
-```
+```shell
 pip install -r test_requirements.txt
 coverage run setup.py test
 # or even better testing with tox
