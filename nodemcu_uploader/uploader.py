@@ -238,7 +238,7 @@ class Uploader(object):
         self.__write('C')
         # we should get a NUL terminated filename to start with
         sent_filename = self.__expect(NUL).strip()
-        log.info('receiveing ' + sent_filename)
+        log.info('receiving ' + sent_filename)
 
         # ACK to start download
         self.__write(ACK, True)
