@@ -22,11 +22,13 @@ r"""
 function recv()
     local on,w,ack,nack=uart.on,uart.write,'\6','\21'
     local fd
+    local _print = print; print = function() end
+    local function enablePrint() print,_print=_print,nil end
     local function recv_block(d)
         local t,l = d:byte(1,2)
-        if t ~= 1 then w(0, nack); fd:close(); return on('data') end
+        if t ~= 1 then w(0, nack); fd:close(); enablePrint(); return on('data') end
         if l >= 0  then fd:write(d:sub(3, l+2)); end
-        if l == 0 then fd:close(); w(0, ack); return on('data') else w(0, ack) end
+        if l == 0 then fd:close(); enablePrint(); w(0, ack); return on('data') else w(0, ack) end
     end
     local function recv_name(d) d = d:gsub('%z.*', '') d:sub(1,-2) file.remove(d) fd=file.open(d, 'w') on('data', 130, recv_block, 0) w(0, ack) end
     on('data', '\0', recv_name, 0)
@@ -40,6 +42,8 @@ r"""
 function send(f) uart.on('data', 1, function (data)
   local on,w=uart.on,uart.write
   local fd
+  local _print = print; print = function() end
+  local function enablePrint() print,_print=_print,nil end
   local function send_block(d) l = string.len(d) w(0, '\001' .. string.char(l) .. d .. string.rep('\0', 128 - l)) return l end
   local function send_file(f)
     local s, p
@@ -48,12 +52,12 @@ function send(f) uart.on('data', 1, function (data)
       if data == '\006' and p<s then
         fd:seek('set',p) p=p+send_block(fd:read(128))
       else
-        send_block('') fd:close() on('data') print('interrupted')
+        send_block('') fd:close() enablePrint() on('data') print('interrupted')
       end
     end, 0)
     w(0, f .. '\000')
   end
-  uart.on('data') if data == 'C' then send_file(f) else print('transfer interrupted') end end, 0)
+  uart.on('data') if data == 'C' then send_file(f) else enablePrint() print('transfer interrupted') end end, 0)
 end
 """
 
