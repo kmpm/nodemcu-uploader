@@ -1,5 +1,13 @@
 nodemcu-uploader.py
 ===================
+
+__Archival notice!!!__ This project is currently archived because of lack of time
+and interest. I no longer use NodeMCU in any form. But someone else might be.
+If you want to post a notice here about your active alternative then send me a
+DM here on github.
+
+---
+
 A simple tool for uploading files to the filesystem of an
 ESP8266 running NodeMCU as well as some other useful commands.
 
